@@ -2,6 +2,14 @@
    KAIJU FLY - 特摄片场大冒险 · 样式表
    ========================================================================== */
 
+:root {
+  --film-ink: #20252a;
+  --film-paper: #e8dcc3;
+  --film-red: #a74732;
+  --film-gold: #d7af67;
+  --film-blue: #617887;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -88,13 +96,13 @@ html, body {
   display: block;
   height: 100%;
   width: 100%;
-  background: linear-gradient(180deg, #ffe066, #ff922b);
+  background: linear-gradient(180deg, #e8cc8d, #c4894f);
   border-radius: 8px;
   transition: width 0.05s linear;
 }
 
 #energyFill.low {
-  background: linear-gradient(180deg, #ff8787, #e03131);
+  background: linear-gradient(180deg, #d7795c, #9f3b33);
 }
 
 .stat {
@@ -504,7 +512,94 @@ html, body {
   border: 3px solid #3c3327;
   background: #e9dec4;
   display: block;
-  filter: sepia(0.25) contrast(1.05);
+  filter: contrast(1.05);
+}
+
+/* Direction 3: restrained film-and-ink treatment for the playable slice. */
+.stat, #missionBox, #soundBtn {
+  border-radius: 4px;
+  box-shadow: 3px 3px 0 rgba(20, 25, 28, 0.45);
+}
+
+.stat {
+  color: #f2e7d2;
+  background: rgba(24, 30, 34, 0.84);
+  border: 1px solid rgba(231, 211, 174, 0.44);
+  text-shadow: 0 1px 3px #111;
+}
+
+.stat b { color: #f0c681; }
+
+.energy-label { color: #f2e7d2; letter-spacing: 1px; }
+.energy-bar { border: 2px solid var(--film-ink); border-radius: 3px; background: #1b2429; }
+#energyFill { border-radius: 0; }
+
+#missionBox {
+  background: rgba(232, 220, 195, 0.94);
+  border: 1px solid var(--film-ink);
+  color: var(--film-ink);
+}
+
+#toast { color: #f4e7c7; text-shadow: 2px 3px 0 #24272b, 0 0 14px #17191b; }
+#bigText { color: #f4e7c7; text-shadow: 2px 3px 0 #8c3b30, 0 0 16px #17191b; }
+
+#mug {
+  background: #e8dcc3;
+  border: 2px solid var(--film-ink);
+  border-radius: 3px;
+  box-shadow: 5px 5px 0 rgba(18, 22, 25, 0.55);
+}
+
+#soundBtn {
+  background: rgba(232, 220, 195, 0.93);
+  border: 1px solid var(--film-ink);
+  color: var(--film-ink);
+}
+
+.panel { background: rgba(17, 24, 29, 0.73); }
+.card {
+  background: linear-gradient(145deg, #eee2c9, #d8c8a8);
+  border: 2px solid var(--film-ink);
+  border-radius: 4px;
+  box-shadow: 12px 14px 0 rgba(15, 20, 23, 0.55);
+  color: var(--film-ink);
+}
+
+.clapper-stripe {
+  background: repeating-linear-gradient(-45deg, #242a2d 0 12px, #e3d3b5 12px 24px);
+  border-bottom: 2px solid var(--film-ink);
+}
+
+.director-badge { background: #d5b578; border: 1px solid var(--film-ink); border-radius: 2px; }
+.card h1 { color: var(--film-red); text-shadow: 2px 2px 0 #272c2e; }
+.card .sub { color: #4f6672; }
+.card p.lead { color: #3d4649; }
+.modes button, .btns button {
+  background: #b2523d;
+  border: 2px solid var(--film-ink);
+  border-radius: 3px;
+  color: #f7ebd5;
+  box-shadow: 4px 4px 0 var(--film-ink);
+}
+.modes button span { color: #f1dfc4; }
+.modes button.alt { background: #4d6775; }
+.how { background: rgba(244, 235, 214, 0.6); border: 1px solid #857f72; border-radius: 2px; }
+.how b { color: #983f32; }
+.legend { color: #515a5b; }
+
+@media (max-width: 600px) {
+  #hud { padding: 10px; }
+  .hud-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .energy-wrap { grid-column: 1 / -1; min-width: 0; padding-right: 80px; }
+  .stat { min-width: 0; padding: 5px 7px; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .stat b { font-size: 14px; }
+  #stageBadge { grid-column: 1 / -1; }
+  #tip { font-size: 11px; margin-top: 6px; }
+  #soundBtn { top: 10px; right: 10px; }
 }
 
 .paper-text {

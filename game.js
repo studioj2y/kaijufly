@@ -16,8 +16,8 @@
 
   // 空中特摄道具池 (包含拉顿、摩斯拉、基拉斯旋转等)
   const AIR_TYPES = [
-    'cloud', 'cloud', 'rodan', 'mothra', 'balloon', 'plane',
-    'gillas', 'oilrig', 'chili', 'can', 'birds', 'chili', 'can'
+    'cloud', 'rodan', 'mothra', 'balloon', 'plane',
+    'gillas', 'oilrig', 'chili', 'can', 'birds'
   ];
 
   // 地面特摄见学收尾道具池 (8种爆笑见学纪念结局)
@@ -69,37 +69,32 @@
     skid: '双脚擦出火花！借力再弹！'
   };
 
-  // 导演制定的 5 套【片场特报见学通告】
+  // 通告只要求飞得更远；场景与互动始终随机生成。
   const TOKUSATSU_MISSIONS = [
     {
-      desc: '借拉顿飞一程，最后挂在安吉拉斯尖刺上',
-      need: { rodan: 1, land: 'anguirus' },
-      head: '超音速破空！小见学者的短裤遭遇怪兽级大危机！',
-      sub: '拉顿极速巡航之后，安吉拉斯的背甲成了最尴尬也最安全的着陆垫'
+      target: 2000, desc: '飞过 2000 米，完成首次远征',
+      head: '飞越摄影棚！首次远征登上片场特报！',
+      sub: '从摄影棚一路飞到暮色布景，小见学者交出了第一份长途飞行纪录'
     },
     {
-      desc: '沐浴摩斯拉鳞粉，最后撞穿手绘天空背景布',
-      need: { mothra: 1, land: 'canvas' },
-      head: '神圣巨蛾祈福！天外来客撞破片场人造蓝天！',
-      sub: '美工组连夜加班补天，小朋友从画中探头哈哈大笑'
+      target: 3500, desc: '飞过 3500 米，穿越微缩都市',
+      head: '穿越微缩都市！摄影机差点追不上！',
+      sub: '无论遇见哪位怪兽，飞行距离才是这场挑战的主角'
     },
     {
-      desc: '踩 2 次哥斯拉肚皮，最后滑进摄影师轨道车',
-      need: { balloon: 2, land: 'dolly' },
-      head: '两度弹射大肚腩！全场瞩目小副导演诞生！',
-      sub: '一发入魂滑轨车摇动阿莱胶片机，总监督夸赞极具灵性'
+      target: 5000, desc: '飞过 5000 米，挑战月面片场',
+      head: '冲破五千米！月面片场也留下飞行轨迹！',
+      sub: '一次次选择扑腾和俯冲，终于把旅程延伸到了最终幕'
     },
     {
-      desc: '被基拉斯兄弟卷上天，最后落入奥特曼怀里',
-      need: { gillas: 1, land: 'ultraman' },
-      head: '孪生怪兽飓风！奥特战士后台喝奶茶被当场抓包！',
-      sub: '经历基拉斯旋转后精准投送，英雄的大银手稳如泰山'
+      target: 7000, desc: '飞过 7000 米，刷新片场纪录',
+      head: '七千米新纪录！片场全员仰望天空！',
+      sub: '随机出现的布景与道具，让这次纪录有了独一无二的故事'
     },
     {
-      desc: '触发 2 次特斯拉放电，最后坐弯微缩东京铁塔',
-      need: { cloud: 2, land: 'tower' },
-      head: '带电空降！特摄名场面折叠东京铁塔达成！',
-      sub: '连环电弧之后一屁股压弯铁塔，全剧组起立欢呼'
+      target: 10000, desc: '飞过 10000 米，完成万米远征',
+      head: '万米远征达成！传奇镜头写进片场史！',
+      sub: '穿过四幕布景之后，仍然愿意再飞一次的勇气才是终极特技'
     }
   ];
 
@@ -107,7 +102,7 @@
   const S = {
     phase: 'menu', mode: 'distance', t: 0, frame: 0, angle: 45, power: 60, aimT: 0, powerT: 0,
     j: { x: 0, y: 0, vx: 0, vy: 0, energy: 100, arm: 0 },
-    holding: false, dist: 0, bonus: 0, combo: 0, comboTimer: 0, events: {}, stage: 1,
+    holding: false, dist: 0, bonus: 0, combo: 0, comboTimer: 0, events: {}, stage: 1, skids: 0,
     air: [], ground: [], genX: 0, camX: 0, camY: 0, shake: 0, flash: 0, skeleton: 0, stun: 0, spin: 0,
     carried: 0, carryType: null,
     particles: [], landingType: 'sand', landingT: 0, landingObj: null, mission: null, missionIdx: 0, missionOk: false,
@@ -218,25 +213,25 @@
     const r = rnd32(S.seed + Math.floor(start / CHUNK) * 7919 + 13);
     const dist = start;
 
-    // 动态密度机制：随着飞行距离推进，大幅增加空中实体与地面设施密度
-    let airN = 4 + Math.floor(r() * 2);
-    let facN = 2 + Math.floor(r() * 2);
+    // 稀疏但持续的互动；飞得更远不应自动获得更密集的续命道具。
+    let airN = 1 + Math.floor(r() * 2);
+    let facN = r() < 0.4 ? 1 : 0;
 
     if (dist >= 800 && dist < 2200) {
-      // 中期：片场微缩都市城郊，密度明显增加
-      airN = 6 + Math.floor(r() * 3);
-      facN = 4 + Math.floor(r() * 3);
-    } else if (dist >= 2200) {
-      // 后期：狂欢大激战都市与宇宙基地，设施极密，给玩家丰富借力自救手段！
-      airN = 8 + Math.floor(r() * 3);
-      facN = 6 + Math.floor(r() * 3);
+      airN = 2 + Math.floor(r() * 2);
+      facN = r() < 0.55 ? 1 : 0;
+    } else if (dist >= 2200 && dist < 4200) {
+      airN = 2 + Math.floor(r() * 2);
+      facN = r() < 0.5 ? 1 : 0;
+    } else if (dist >= 4200) {
+      airN = 1 + Math.floor(r() * 2);
+      facN = r() < 0.35 ? 1 : 0;
     }
 
     // 生成空中道具
     for (let i = 0; i < airN; i++) {
       let t;
-      // 中后期更频繁出现拉顿、摩斯拉、基拉斯旋转和喷射战机
-      if (dist >= 1200 && r() < 0.45) {
+      if (dist >= 1200 && r() < 0.18) {
         const highTypes = ['rodan', 'mothra', 'gillas', 'plane', 'balloon', 'chili'];
         t = highTypes[Math.floor(r() * highTypes.length)];
       } else {
@@ -260,36 +255,27 @@
     }
   }
 
-  function injectMission(m) {
-    let x = 170;
-    for (let round = 0; round < 2; round++) {
-      for (const k in m.need) {
-        if (k === 'land') continue;
-        for (let i = 0; i < m.need[k]; i++) {
-          x += 95;
-          const y = k === 'cloud' ? 62 : k === 'gillas' ? 16 : k === 'balloon' ? 30 : k === 'oilrig' ? 10 : 38;
-          S.air.push(makeEnt(k, x, y, Math.random));
-        }
-      }
-      x += 150;
-      S.ground.push(makeGround(m.need.land, x));
-    }
-  }
-
   function buildWorld() {
     S.air = []; S.ground = []; S.genX = 0;
-    S.seed = S.mode === 'career' ? 4200 + S.missionIdx * 137 : Math.floor(Math.random() * 1e6) + 1;
+    S.seed = Math.floor(Math.random() * 1e6) + 1;
     for (let i = 0; i < 7; i++) {
       genChunk(S.genX);
       S.genX += CHUNK;
     }
-    if (S.mode === 'career' && S.mission) injectMission(S.mission);
   }
 
   function ensureWorld() {
+    let generated = false;
     while (S.genX < S.camX + W / PPM + CHUNK * 3) {
       genChunk(S.genX);
       S.genX += CHUNK;
+      generated = true;
+    }
+    if (generated) {
+      // 保留一块屏外缓冲；早已飞过的机关无需继续参与碰撞与绘制。
+      const oldestVisibleX = S.camX - W * 0.28 / PPM - CHUNK;
+      S.air = S.air.filter(e => e.x + e.w / 2 >= oldestVisibleX);
+      S.ground = S.ground.filter(g => g.x + g.w / 2 >= oldestVisibleX);
     }
   }
 
@@ -344,7 +330,7 @@
     S.phase = 'aim';
     S.aimT = 0; S.powerT = 0; S.t = 0;
     S.j = { x: 0, y: 0, vx: 0, vy: 0, energy: 100, arm: 0 };
-    S.holding = false; S.dist = 0; S.bonus = 0; S.combo = 0; S.comboTimer = 0; S.events = {}; S.stage = 1;
+    S.holding = false; S.dist = 0; S.bonus = 0; S.combo = 0; S.comboTimer = 0; S.events = {}; S.stage = 1; S.skids = 0;
     S.camX = 0; S.camY = 0; S.shake = 0; S.flash = 0; S.skeleton = 0; S.stun = 0; S.spin = 0;
     S.carried = 0; S.carryType = null;
     S.particles = []; S.landingType = 'sand'; S.landingT = 0; S.landingObj = null; S.missionOk = false; S.frozen = false;
@@ -611,15 +597,7 @@
   }
 
   function checkMission() {
-    if (!S.mission) return false;
-    for (const k in S.mission.need) {
-      if (k === 'land') {
-        if (S.landingType !== S.mission.need.land) return false;
-      } else if ((S.events[k] || 0) < S.mission.need[k]) {
-        return false;
-      }
-    }
-    return true;
+    return !!S.mission && S.dist >= S.mission.target;
   }
 
   function doLanding(forceType) {
@@ -672,7 +650,7 @@
     $('resBest').textContent = S.best.dist;
     $('resNote').textContent = ok
       ? '收场方式：' + L.name + ' · ' + L.note + ' · 途中完成 ' + Object.values(S.events).reduce((a, b) => a + b, 0) + ' 次特摄互动！'
-      : '本次收场：' + L.name + '。导演脚本要求「' + S.mission.desc + '」，没赶上午报头条，再拍一发！';
+      : '本次飞到 ' + dist + ' 米，距离 ' + S.mission.target + ' 米目标还差 ' + Math.max(0, S.mission.target - dist) + ' 米。再拍一发！';
 
     $('nextMission').classList.add('hidden');
     $('result').classList.remove('hidden');
@@ -687,7 +665,7 @@
     $('paperSub').textContent = m.sub;
     $('paperText').innerHTML =
       '<p class="drop">特摄片场特报记者实况报道：今日前来参观的小勇士乘着剧组的实验飞天大炮破空而起，' +
-      '在空中横贯 ' + dist + ' 米摄影棚微缩实景，完美完成了本期导演指定的拍摄动作，最终以「' + L.name + '」的爆笑姿态圆满收场，获得全剧组人员 ' + score + ' 分的欢呼喝采！</p>' +
+      '在空中横贯 ' + dist + ' 米摄影棚微缩实景，完成了本期导演指定的里程挑战，最终以「' + L.name + '」的爆笑姿态圆满收场，获得全剧组人员 ' + score + ' 分的欢呼喝采！</p>' +
       '<p>摄影指导表示，该名小朋友在飞行途中熟练触发了 ' +
       Object.keys(S.events).map(k => STUNT_LABEL[k] || k).join('、') +
       ' 等高难度特摄动作，全程单手操作，表情十分精彩！</p>' +
@@ -797,10 +775,10 @@
 
       // 玩家长按：双手扑腾扑腾爬升！
       const flap = S.holding && j.energy > 0 && S.stun <= 0;
-      // 最后一搏：体力归零时的拼命挣扎扑腾
+      // 体力归零时仍能微调姿态，但无法持续凭空爬升或加速。
       const emergency = S.holding && j.energy <= 0 && S.stun <= 0;
 
-      let ay = -curG + (flap ? LIFT : (emergency ? 9.5 : 0)) + Math.min(8, j.vx * 0.08);
+      let ay = -curG + (flap ? LIFT : (emergency ? 2.5 : 0)) + Math.min(8, j.vx * 0.08);
       ay -= j.vy * VDRAG;
       j.vy += ay * dt;
 
@@ -816,7 +794,7 @@
         }
         if (Math.random() < dt * 22) puff(j.x - 1, j.y - 0.6, 1, '#ffffff', 5);
       } else if (emergency) {
-        j.vx += 3.5 * dt; // 最后一搏微弱前推
+        j.vx += 0.5 * dt; // 微弱姿态修正，不构成无限续航
         j.arm += dt * 10;
         if (Math.random() < dt * 14) puff(j.x - 1, j.y - 0.4, 1, '#ffc9c9', 3);
       } else {
@@ -837,10 +815,7 @@
       const curDrag = j.vx < 28 ? Math.max(0.018, DRAG * (j.vx / 28)) : DRAG;
       j.vx -= j.vx * curDrag * dt;
 
-      // 空中保底前向滑翔速度（人在半空绝不原地失速坠毁）
-      if (j.y > 0.6) {
-        j.vx = Math.max(15, j.vx);
-      }
+      // 保留真实减速，速度不足时让这一发自然结束。
       if (j.vx < 0) j.vx = 0;
       j.x += j.vx * dt; j.y += j.vy * dt;
     }
@@ -862,8 +837,9 @@
     if (j.y <= 0 && j.vy <= 0 && S.carried <= 0) {
       // 触地判定：先看是否触发了地面设施 (弹簧蹦床/纸板大厦/原子喷口等)
       if (!checkGroundFacilities()) {
-        // 若速度尚在 (vx >= 12)，触发特摄滑铲受身打水漂，绝不暴毙！
-        if (j.vx >= 12) {
+        // 高速触地最多借力两次，避免低速滑跳无限续命。
+        if (j.vx >= 22 && S.skids < 2) {
+          S.skids++;
           j.y = 0.5;
           j.vy = Math.max(13.5, Math.abs(j.vy) * 0.52 + 6.5);
           j.vx *= 0.88;
@@ -949,7 +925,24 @@
   }
 
   // ---------------- 画面渲染 (特摄片场视差美学与阶段换幕) ----------------
+  function drawArtSky() {
+    const art = window.kaijuArt && window.kaijuArt.get('city');
+    if (!art || S.stage !== 1) return false;
+
+    ctx.fillStyle = '#93aeb9';
+    ctx.fillRect(0, 0, W, H);
+    // A far skyline needs only a gentle pan across the first act. This avoids
+    // a visible repeat seam while the finite stage-1 panorama is on screen.
+    const scale = Math.max(W / art.width, H / art.height) * 1.12;
+    const artW = art.width * scale, artH = art.height * scale;
+    const scroll = Math.min(artW - W, (artW - W) * 0.5 + S.camX * PPM * 0.01);
+    const shiftY = Math.min(H * 0.16, S.camY * PPM * 0.05);
+    ctx.drawImage(art, -scroll, shiftY - (artH - H) * 0.3, artW, artH);
+    return true;
+  }
+
   function drawSky() {
+    if (drawArtSky()) return;
     const stage = S.stage || 1;
     const g = ctx.createLinearGradient(0, 0, 0, H);
 
@@ -1095,15 +1088,33 @@
     const y = wy(0);
     const stage = S.stage || 1;
     // 片场地表颜色随阶段演化
-    let groundCol = '#e9cca4', borderCol = '#d4b285';
+    let groundCol = '#2d3b41', borderCol = '#c79a66';
     if (stage === 2) { groundCol = '#c07238'; borderCol = '#8c4815'; }
     else if (stage === 3) { groundCol = '#343a40'; borderCol = '#212529'; }
     else if (stage === 4) { groundCol = '#adb5bd'; borderCol = '#868e96'; }
 
+    if (stage === 1) {
+      const inkFloor = ctx.createLinearGradient(0, y, 0, H);
+      inkFloor.addColorStop(0, '#354951');
+      inkFloor.addColorStop(1, '#17232a');
+      groundCol = inkFloor;
+    }
     ctx.fillStyle = groundCol;
     ctx.fillRect(0, y, W, H - y + 300);
     ctx.fillStyle = borderCol;
-    ctx.fillRect(0, y, W, 9);
+    ctx.fillRect(0, y, W, stage === 1 ? 5 : 9);
+
+    if (stage === 1) {
+      ctx.strokeStyle = 'rgba(216, 184, 135, 0.15)';
+      ctx.lineWidth = 1;
+      const hatch = (S.camX * PPM) % 36;
+      for (let x = -H - hatch; x < W + H; x += 36) {
+        ctx.beginPath();
+        ctx.moveTo(x, y + 6);
+        ctx.lineTo(x - (H - y) * 0.44, H);
+        ctx.stroke();
+      }
+    }
 
     // 摄影机微缩双钢轨 (地面导轨)
     ctx.strokeStyle = stage === 3 ? '#ffd43b' : '#868e96';
@@ -1255,7 +1266,14 @@
       const e = S.air[i], sx = wx(e.x), sy = wy(e.y);
       if (sx > -200 && sx < W + 200 && sy > -300 && sy < H + 300) {
         ctx.globalAlpha = e.hit ? 0.3 : 1;
-        window.drawTokusatsuAirEntity(ctx, e, sx, sy, PPM, S.t);
+        const mothArt = e.type === 'mothra' && window.kaijuArt && window.kaijuArt.get('moth');
+        if (mothArt) {
+          const width = e.w * PPM;
+          const height = width * mothArt.height / mothArt.width;
+          ctx.drawImage(mothArt, sx - width / 2, sy - height / 2 + Math.sin(S.t * 3 + e.ph) * 3, width, height);
+        } else {
+          window.drawTokusatsuAirEntity(ctx, e, sx, sy, PPM, S.t);
+        }
         ctx.globalAlpha = 1;
       }
     }
@@ -1282,13 +1300,24 @@
         ctx.restore();
       } else {
         const rot = S.spin > 0 ? S.t * 14 : clamp(Math.atan2(-S.j.vy, Math.max(1, S.j.vx)) * 0.55, -0.6, 0.9);
-        window.drawKidCharacter(ctx, jx, jy, 46, {
-          rot: rot,
-          arm: S.j.arm,
-          flapping: S.holding && S.j.energy > 0,
-          bones: S.skeleton > 0 && Math.sin(S.t * 40) > -0.2,
-          sx: 1, sy: 1
-        });
+        const pilotArt = window.kaijuArt && window.kaijuArt.get('pilot');
+        const showBones = S.skeleton > 0 && Math.sin(S.t * 40) > -0.2;
+        if (pilotArt && !showBones) {
+          const spriteW = 88, spriteH = spriteW * pilotArt.height / pilotArt.width;
+          ctx.save();
+          ctx.translate(jx, jy);
+          ctx.rotate(rot + (S.holding ? Math.sin(S.j.arm) * 0.035 : 0));
+          ctx.drawImage(pilotArt, -spriteW * 0.57, -spriteH * 0.5, spriteW, spriteH);
+          ctx.restore();
+        } else {
+          window.drawKidCharacter(ctx, jx, jy, 46, {
+            rot: rot,
+            arm: S.j.arm,
+            flapping: S.holding && S.j.energy > 0,
+            bones: showBones,
+            sx: 1, sy: 1
+          });
+        }
 
         // 被拉顿或摩斯拉带飞时，在头顶画出抓着书包的怪兽模型
         if (S.carried > 0 && S.carryType) {
@@ -1430,6 +1459,14 @@
   const q = new URLSearchParams(location.search);
   if (q.get('test') === '1') {
     runTests();
+  } else if (q.get('artpreview') === '1') {
+    startGame('distance', 0);
+    S.phase = 'flying';
+    S.j = { x: 300, y: 24, vx: 48, vy: 0, energy: 72, arm: 0 };
+    S.dist = 300; S.camX = 300; S.camY = 0; S.stage = 1;
+    S.air = [makeEnt('mothra', 300 + W * 0.4 / PPM, 30, rnd32(9))];
+    S.frozen = true;
+    updateHUD();
   } else {
     showMenu();
   }
