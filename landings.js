@@ -69,12 +69,152 @@ const TOKUSATSU_LANDINGS = {
   }
 };
 
-// 绘制静态特摄微缩地标物件
-function drawGroundTokusatsuObj(ctx, type, px, wy0) {
+// 绘制静态特摄微缩地标与地面交互设施物件
+function drawGroundTokusatsuObj(ctx, type, px, wy0, sx) {
   ctx.save();
-  ctx.translate(0, wy0);
+  ctx.translate(sx != null ? sx : 0, wy0);
 
   switch (type) {
+    // ---------------- 地面交互加速/弹跳设施 ----------------
+    case 'trampoline': {
+      // 哥斯拉橡胶皮套肚皮地面大弹簧床
+      const bw = px * 0.9, bh = px * 0.45;
+      // 底部金属弹簧底座
+      ctx.strokeStyle = '#495057';
+      ctx.lineWidth = 3;
+      for (let i = -2; i <= 2; i++) {
+        const ox = i * (bw * 0.18);
+        ctx.beginPath();
+        ctx.moveTo(ox - 6, 0);
+        ctx.lineTo(ox + 6, -bh * 0.28);
+        ctx.lineTo(ox - 6, -bh * 0.45);
+        ctx.stroke();
+      }
+      // 绿色橡胶肚腩垫
+      ctx.fillStyle = '#2b4c3f';
+      ctx.beginPath();
+      ctx.ellipse(0, -bh * 0.45, bw * 0.48, bh * 0.38, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#69db7c';
+      ctx.beginPath();
+      ctx.ellipse(0, -bh * 0.52, bw * 0.38, bh * 0.26, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // 红色弹射箭头标
+      ctx.fillStyle = '#e03131';
+      ctx.beginPath();
+      ctx.moveTo(-10, -bh * 0.48);
+      ctx.lineTo(0, -bh * 0.72);
+      ctx.lineTo(10, -bh * 0.48);
+      ctx.fill();
+      break;
+    }
+
+    case 'building': {
+      // 昭和特摄微缩泡沫纸板大厦
+      const bw = px * 0.75, bh = px * 1.35;
+      // 水泥灰大楼主体
+      ctx.fillStyle = '#495057';
+      ctx.fillRect(-bw * 0.5, -bh, bw, bh);
+      ctx.fillStyle = '#343a40';
+      ctx.fillRect(-bw * 0.5, -bh, bw * 0.1, bh); // 侧边立体阴影
+      // 格子玻璃窗户 (亮黄/青蓝特摄光)
+      const rows = 6, cols = 4;
+      const ww = bw * 0.15, wh = bh * 0.09;
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const wx = -bw * 0.42 + c * (bw * 0.23);
+          const wy = -bh + 12 + r * (bh * 0.15);
+          ctx.fillStyle = (r + c) % 2 === 0 ? '#ffd43b' : '#74c0fc';
+          ctx.fillRect(wx, wy, ww, wh);
+        }
+      }
+      // 楼顶红色避雷针与警示灯
+      ctx.strokeStyle = '#e03131';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(0, -bh);
+      ctx.lineTo(0, -bh - 18);
+      ctx.stroke();
+      ctx.fillStyle = '#ff6b6b';
+      ctx.beginPath();
+      ctx.arc(0, -bh - 18, 4, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    }
+
+    case 'vent': {
+      // 原子热核工业蒸汽喷管井口
+      const vw = px * 0.65;
+      // 钢铁井座
+      ctx.fillStyle = '#212529';
+      ctx.fillRect(-vw * 0.5, -16, vw, 16);
+      ctx.fillStyle = '#ff922b';
+      ctx.fillRect(-vw * 0.45, -14, vw * 0.9, 4); // 警示黄黑斑马线
+      // 向上持续喷涌的特摄蒸汽与原子蓝焰
+      ctx.fillStyle = 'rgba(77, 171, 247, 0.45)';
+      ctx.beginPath();
+      ctx.moveTo(-vw * 0.35, -16);
+      ctx.lineTo(-vw * 0.55, -px * 0.85);
+      ctx.lineTo(vw * 0.55, -px * 0.85);
+      ctx.lineTo(vw * 0.35, -16);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+      ctx.beginPath();
+      ctx.arc(0, -px * 0.45, vw * 0.35, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    }
+
+    case 'bento': {
+      // 特摄剧组便当补给长桌与红白遮阳伞
+      const tw = px * 0.75;
+      // 剧组折叠桌与桌布
+      ctx.fillStyle = '#ced4da';
+      ctx.fillRect(-tw * 0.45, -18, tw * 0.9, 18);
+      ctx.fillStyle = '#e03131';
+      ctx.fillRect(-tw * 0.48, -20, tw * 0.96, 5); // 红桌布边
+      // 桌上的剧组高级便当盒
+      ctx.fillStyle = '#212529';
+      ctx.fillRect(-tw * 0.3, -27, 16, 7);
+      ctx.fillStyle = '#fcc419';
+      ctx.fillRect(-tw * 0.28, -25, 12, 3);
+      // 能量果汁罐与水壶
+      ctx.fillStyle = '#22b8cf';
+      ctx.fillRect(tw * 0.12, -31, 8, 11);
+      ctx.fillStyle = '#fab005';
+      ctx.fillRect(tw * 0.24, -28, 8, 8);
+      // 红白相间摄影伞
+      ctx.strokeStyle = '#495057';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(0, -20);
+      ctx.lineTo(0, -px * 0.65);
+      ctx.stroke();
+      ctx.fillStyle = '#ff6b6b';
+      ctx.beginPath();
+      ctx.arc(0, -px * 0.65, tw * 0.38, Math.PI, 0);
+      ctx.fill();
+      break;
+    }
+
+    case 'dolly_rail': {
+      // 贴地特摄滑轨冲刺板
+      const rw = px * 0.85;
+      ctx.fillStyle = '#fcc419';
+      ctx.fillRect(-rw * 0.5, -10, rw, 10);
+      ctx.fillStyle = '#212529';
+      for (let i = 0; i < 5; i++) {
+        ctx.beginPath();
+        const ax = -rw * 0.4 + i * (rw * 0.18);
+        ctx.moveTo(ax - 5, -2);
+        ctx.lineTo(ax + 5, -5);
+        ctx.lineTo(ax - 5, -8);
+        ctx.fill();
+      }
+      break;
+    }
+
+    // ---------------- 地面见学收场特摄道具 ----------------
     case 'anguirus': {
       // 四足刺甲怪兽安吉拉斯微缩模型
       ctx.fillStyle = '#63533e';

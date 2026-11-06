@@ -10,7 +10,8 @@
   let W = 0, H = 0, DPR = 1;
 
   const PPM = 10; // 1米 = 10像素
-  const G = 14, LIFT = 27, VDRAG = 0.55, DRAG = 0.10, DRAIN = 23;
+  // 核心动力学微调：大幅降低恶性空气阻力衰减，优化俯仰升力与体力消耗
+  const G = 13.6, LIFT = 31, VDRAG = 0.50, DRAG = 0.052, DRAIN = 17.5;
   const CHUNK = 160;
 
   // 空中特摄道具池 (包含拉顿、摩斯拉、基拉斯旋转等)
@@ -19,9 +20,14 @@
     'gillas', 'oilrig', 'chili', 'can', 'birds', 'chili', 'can'
   ];
 
-  // 地面特摄收场道具池
-  const GROUND_TYPES = [
+  // 地面特摄见学收尾道具池 (8种爆笑见学纪念结局)
+  const GROUND_LANDING_TYPES = [
     'anguirus', 'canvas', 'sand', 'tower', 'ultraman', 'water', 'dolly', 'chair'
+  ];
+
+  // 地面交互设施池 (弹力蹦床、纸板大厦跳板、原子喷口、便当补给长桌、滑轨冲刺车)
+  const GROUND_FACILITY_TYPES = [
+    'trampoline', 'building', 'vent', 'bento', 'dolly_rail'
   ];
 
   const STUNT_LABEL = {
@@ -34,7 +40,14 @@
     oilrig: '蓝色原子吐息爆发',
     chili: '骑士推进糖果',
     can: '特摄能量果汁',
-    birds: '小巴尔坦道具连击'
+    birds: '小巴尔坦道具连击',
+    // 地面交互设施专属标签
+    trampoline: '特摄橡胶肚腩大弹跳',
+    building: '纸板大楼爆碎冲刺',
+    vent: '原子地井蒸汽冲天',
+    bento: '剧组便当满血复活',
+    dolly_rail: '摄影滑轨极速暴冲',
+    skid: '特摄滑铲借力受身'
   };
 
   const STUNT_MUG = {
@@ -47,7 +60,13 @@
     oilrig: '原子光线直冲云霄！',
     chili: '屁股喷出彩色火焰！',
     can: '喝一口满血复活！',
-    birds: '好多迷你小宇宙人！'
+    birds: '好多迷你小宇宙人！',
+    trampoline: 'DUANG~弹到云彩上面啦！',
+    building: '大厦爆碎！特摄烟火太炫了！',
+    vent: '好烫好爽！强劲热风托起！',
+    bento: '剧组豪华便当！大满足！',
+    dolly_rail: '顺着轨道飞速狂飙！',
+    skid: '双脚擦出火花！借力再弹！'
   };
 
   // 导演制定的 5 套【片场特报见学通告】
@@ -88,7 +107,7 @@
   const S = {
     phase: 'menu', mode: 'distance', t: 0, frame: 0, angle: 45, power: 60, aimT: 0, powerT: 0,
     j: { x: 0, y: 0, vx: 0, vy: 0, energy: 100, arm: 0 },
-    holding: false, dist: 0, bonus: 0, combo: 0, comboTimer: 0, events: {},
+    holding: false, dist: 0, bonus: 0, combo: 0, comboTimer: 0, events: {}, stage: 1,
     air: [], ground: [], genX: 0, camX: 0, camY: 0, shake: 0, flash: 0, skeleton: 0, stun: 0, spin: 0,
     carried: 0, carryType: null,
     particles: [], landingType: 'sand', landingT: 0, landingObj: null, mission: null, missionIdx: 0, missionOk: false,
@@ -181,24 +200,63 @@
       case 'dolly': return 10;
       case 'chair': return 8;
       case 'sand': return 12;
-      default: return 8;
+      // 地面交互设施尺寸
+      case 'trampoline': return 15;
+      case 'building': return 14;
+      case 'vent': return 12;
+      case 'bento': return 11;
+      case 'dolly_rail': return 16;
+      default: return 10;
     }
   }
 
-  function makeGround(t, x) {
-    return { type: t, x: x, w: groundSize(t), hit: false };
+  function makeGround(t, x, isFacility = false) {
+    return { type: t, x: x, w: groundSize(t), hit: false, isFacility: isFacility };
   }
 
   function genChunk(start) {
     const r = rnd32(S.seed + Math.floor(start / CHUNK) * 7919 + 13);
-    const n = 4 + Math.floor(r() * 3);
-    for (let i = 0; i < n; i++) {
-      const t = AIR_TYPES[Math.floor(r() * AIR_TYPES.length)];
-      S.air.push(makeEnt(t, start + 18 + r() * (CHUNK - 36), airHeight(t, r), r));
+    const dist = start;
+
+    // 动态密度机制：随着飞行距离推进，大幅增加空中实体与地面设施密度
+    let airN = 4 + Math.floor(r() * 2);
+    let facN = 2 + Math.floor(r() * 2);
+
+    if (dist >= 800 && dist < 2200) {
+      // 中期：片场微缩都市城郊，密度明显增加
+      airN = 6 + Math.floor(r() * 3);
+      facN = 4 + Math.floor(r() * 3);
+    } else if (dist >= 2200) {
+      // 后期：狂欢大激战都市与宇宙基地，设施极密，给玩家丰富借力自救手段！
+      airN = 8 + Math.floor(r() * 3);
+      facN = 6 + Math.floor(r() * 3);
     }
-    for (let i = 0; i < 3; i++) {
-      const t = GROUND_TYPES[Math.floor(r() * GROUND_TYPES.length)];
-      S.ground.push(makeGround(t, start + 25 + r() * (CHUNK - 50)));
+
+    // 生成空中道具
+    for (let i = 0; i < airN; i++) {
+      let t;
+      // 中后期更频繁出现拉顿、摩斯拉、基拉斯旋转和喷射战机
+      if (dist >= 1200 && r() < 0.45) {
+        const highTypes = ['rodan', 'mothra', 'gillas', 'plane', 'balloon', 'chili'];
+        t = highTypes[Math.floor(r() * highTypes.length)];
+      } else {
+        t = AIR_TYPES[Math.floor(r() * AIR_TYPES.length)];
+      }
+      S.air.push(makeEnt(t, start + 12 + r() * (CHUNK - 24), airHeight(t, r), r));
+    }
+
+    // 生成地面交互设施 (弹力蹦床、纸板大楼、原子喷口、剧组便当、滑轨车)
+    for (let i = 0; i < facN; i++) {
+      const ft = GROUND_FACILITY_TYPES[Math.floor(r() * GROUND_FACILITY_TYPES.length)];
+      const fx = start + 14 + (i / facN) * (CHUNK - 28) + (r() - 0.5) * 10;
+      S.ground.push(makeGround(ft, fx, true));
+    }
+
+    // 规律生成见学收场道具 (安吉拉斯、背景画板、东京铁塔等)
+    const endN = 1 + Math.floor(r() * 2);
+    for (let i = 0; i < endN; i++) {
+      const lt = GROUND_LANDING_TYPES[Math.floor(r() * GROUND_LANDING_TYPES.length)];
+      S.ground.push(makeGround(lt, start + 25 + r() * (CHUNK - 50), false));
     }
   }
 
@@ -286,7 +344,7 @@
     S.phase = 'aim';
     S.aimT = 0; S.powerT = 0; S.t = 0;
     S.j = { x: 0, y: 0, vx: 0, vy: 0, energy: 100, arm: 0 };
-    S.holding = false; S.dist = 0; S.bonus = 0; S.combo = 0; S.comboTimer = 0; S.events = {};
+    S.holding = false; S.dist = 0; S.bonus = 0; S.combo = 0; S.comboTimer = 0; S.events = {}; S.stage = 1;
     S.camX = 0; S.camY = 0; S.shake = 0; S.flash = 0; S.skeleton = 0; S.stun = 0; S.spin = 0;
     S.carried = 0; S.carryType = null;
     S.particles = []; S.landingType = 'sand'; S.landingT = 0; S.landingObj = null; S.missionOk = false; S.frozen = false;
@@ -438,11 +496,114 @@
     }
   }
 
+  function triggerGroundFacility(g) {
+    const j = S.j;
+    switch (g.type) {
+      case 'trampoline':
+        // 哥斯拉橡胶肚皮大弹簧床！DUANG 地高高弹起！
+        j.vy = Math.max(36, Math.abs(j.vy) * 0.8 + 26);
+        j.vx = Math.max(j.vx * 1.05 + 8, 38);
+        S.shake = 8;
+        puff(g.x, 2, 28, '#69db7c', 16);
+        puff(g.x, 2, 14, '#ffd43b', 12);
+        window.kaijuAudio.play('boing');
+        addStunt('trampoline', 120);
+        break;
+
+      case 'building':
+        // 昭和纸板大楼爆碎！泡沫碎块飞溅，顺势弹射！
+        j.vy = Math.max(32, Math.abs(j.vy) * 0.7 + 22);
+        j.vx = Math.max(j.vx * 1.08 + 10, 42);
+        S.shake = 10;
+        puff(g.x, 5, 36, '#ced4da', 18);
+        puff(g.x, 5, 20, '#ffd43b', 15);
+        window.kaijuAudio.play('hit');
+        window.kaijuAudio.play('launch');
+        addStunt('building', 140);
+        break;
+
+      case 'vent':
+        // 原子热线烟雾地井喷口！强劲气流直冲云霄！
+        j.vy = 44;
+        j.vx = Math.max(j.vx + 6, 32);
+        S.shake = 7;
+        puff(g.x, 3, 30, '#4dabf7', 22);
+        puff(g.x, 3, 16, '#ffffff', 16);
+        window.kaijuAudio.play('beam');
+        addStunt('vent', 130);
+        break;
+
+      case 'bento':
+        // 剧组高级便当与能量果汁长桌！体力大回复 + 小幅弹跳！
+        j.energy = Math.min(100, j.energy + 45);
+        j.vy = Math.max(j.vy, 18);
+        j.vx = Math.max(j.vx + 12, 34);
+        puff(g.x, 2, 22, '#ffd43b', 10);
+        puff(g.x, 2, 16, '#22b8cf', 12);
+        window.kaijuAudio.play('pickup');
+        addStunt('bento', 90);
+        break;
+
+      case 'dolly_rail':
+        // 摄影轨道车极速冲刺带！
+        j.vx = Math.max(j.vx + 26, 52);
+        j.vy = Math.max(j.vy, 10);
+        S.shake = 6;
+        puff(g.x, 1, 24, '#fcc419', 16);
+        window.kaijuAudio.play('skid');
+        addStunt('dolly_rail', 110);
+        break;
+    }
+  }
+
+  function checkGroundFacilities() {
+    const j = S.j;
+    if (j.y > 9.5) return false;
+    for (let i = 0; i < S.ground.length; i++) {
+      const g = S.ground[i];
+      if (!g.isFacility || g.hit || g.x < j.x - 30 || g.x > j.x + 30) continue;
+      if (Math.abs(g.x - j.x) < g.w / 2 + 2.0 && j.y <= 8.5) {
+        g.hit = true;
+        triggerGroundFacility(g);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function checkStageTransition() {
+    const x = S.j.x;
+    let newStage = 1;
+    if (x >= 4200) newStage = 4;
+    else if (x >= 2500) newStage = 3;
+    else if (x >= 1200) newStage = 2;
+
+    if (newStage !== S.stage) {
+      S.stage = newStage;
+      window.kaijuAudio.play('stage');
+      S.flash = 0.45;
+      S.shake = 8;
+      if (newStage === 2) {
+        toast('🎬 第2幕：夕陽の怪獣大決戦セット！');
+        mug('★_★', '夕阳西下！怪兽大激斗开拍！');
+      } else if (newStage === 3) {
+        toast('🎬 第3幕：深夜の東京ミニチュア都市！');
+        mug('★_★', '聚光灯亮起！东京铁塔霓虹夜景！');
+      } else if (newStage === 4) {
+        toast('🎬 最终幕：宇宙月面特撮セット！');
+        mug('^o^', '飞出大气层！漂浮在月球微缩基地！');
+      }
+      updateHUD();
+    }
+  }
+
   function findGround(x) {
     let best = null, bd = 1e9;
     for (let i = 0; i < S.ground.length; i++) {
-      const g = S.ground[i], d = Math.abs(g.x - x);
-      if (d < g.w / 2 + 2.5 && d < bd) {
+      const g = S.ground[i];
+      if (g.isFacility) continue; // 仅寻找见学收场道具
+      const d = Math.abs(g.x - x);
+      if (d < g.w / 2 + 5.5 && d < bd) {
         bd = d; best = g;
       }
     }
@@ -547,6 +708,17 @@
     $('comboVal').textContent = S.combo;
     $('bestVal').textContent = S.best.dist;
 
+    const sb = $('stageBadge');
+    if (sb) {
+      const stageNames = {
+        1: '🎬 第1幕：白昼摄影棚',
+        2: '🎬 第2幕：夕陽の怪獣決戦',
+        3: '🎬 第3幕：深夜の東京ミニチュア',
+        4: '🎬 最终幕：宇宙月面特撮'
+      };
+      sb.textContent = stageNames[S.stage || 1] || '🎬 特摄片场';
+    }
+
     if (S.phase === 'aim') {
       $('tip').textContent = '① 按一下锁定大炮发射仰角：' + S.angle.toFixed(0) + '°';
     } else if (S.phase === 'power') {
@@ -620,14 +792,22 @@
         toast(S.carryType === 'rodan' ? '拉顿松爪！顺风滑翔！' : '摩斯拉温柔松爪！体力满格！');
       }
     } else {
+      // 当前阶段重力：太空月面基地阶段 (4200m+) 具有略微低重力，带来轻盈的漂浮感
+      const curG = S.j.x >= 4200 ? 9.6 : G;
+
       // 玩家长按：双手扑腾扑腾爬升！
       const flap = S.holding && j.energy > 0 && S.stun <= 0;
-      let ay = -G + (flap ? LIFT : 0) + Math.min(6, j.vx * 0.07);
+      // 最后一搏：体力归零时的拼命挣扎扑腾
+      const emergency = S.holding && j.energy <= 0 && S.stun <= 0;
+
+      let ay = -curG + (flap ? LIFT : (emergency ? 9.5 : 0)) + Math.min(8, j.vx * 0.08);
       ay -= j.vy * VDRAG;
       j.vy += ay * dt;
 
       if (flap) {
         j.energy = Math.max(0, j.energy - DRAIN * dt);
+        // ★ 核心手感优化：扑腾不仅抬升，更产生前向推力！挣扎能真正改变结果！
+        j.vx += 8.5 * dt;
         j.arm += dt * 15;
         flapSfxT -= dt;
         if (flapSfxT <= 0) {
@@ -635,14 +815,32 @@
           flapSfxT = 0.19;
         }
         if (Math.random() < dt * 22) puff(j.x - 1, j.y - 0.6, 1, '#ffffff', 5);
+      } else if (emergency) {
+        j.vx += 3.5 * dt; // 最后一搏微弱前推
+        j.arm += dt * 10;
+        if (Math.random() < dt * 14) puff(j.x - 1, j.y - 0.4, 1, '#ffc9c9', 3);
       } else {
+        // 未按住时：俯冲气动滑翔，势能转化为前向动能 (Aerodynamic Swoop)
+        if (j.vy < -2.5) {
+          j.vx += Math.min(22, -j.vy * 0.28) * dt;
+        }
         j.arm += dt * 3;
       }
 
-      // 俯仰角度与失速检查
+      // 攻角与气流阻尼：平滑过渡，取消恶性失速骤降
       const ang = Math.atan2(j.vy, Math.max(1, j.vx));
-      if (ang > 1.0) j.vx -= j.vx * 0.95 * dt; // 爬升太陡导致气流失速
-      j.vx -= j.vx * DRAG * dt;
+      if (ang > 1.2) {
+        j.vx -= j.vx * 0.16 * dt; // 大攻角平缓气流阻尼，绝不再秒扣 95%！
+      }
+
+      // 动态空气阻力：高速标准阻力，低速/巡航阻力减免，避免空中便秘停滞
+      const curDrag = j.vx < 28 ? Math.max(0.018, DRAG * (j.vx / 28)) : DRAG;
+      j.vx -= j.vx * curDrag * dt;
+
+      // 空中保底前向滑翔速度（人在半空绝不原地失速坠毁）
+      if (j.y > 0.6) {
+        j.vx = Math.max(15, j.vx);
+      }
       if (j.vx < 0) j.vx = 0;
       j.x += j.vx * dt; j.y += j.vy * dt;
     }
@@ -654,8 +852,32 @@
     S.camY += (targetCamY - S.camY) * Math.min(1, dt * 3);
 
     ensureWorld();
-    if (S.carried <= 0) checkCollisions();
-    if (j.y <= 0 && j.vy <= 0 && S.carried <= 0) doLanding();
+    checkStageTransition();
+
+    if (S.carried <= 0) {
+      checkCollisions();
+      checkGroundFacilities();
+    }
+
+    if (j.y <= 0 && j.vy <= 0 && S.carried <= 0) {
+      // 触地判定：先看是否触发了地面设施 (弹簧蹦床/纸板大厦/原子喷口等)
+      if (!checkGroundFacilities()) {
+        // 若速度尚在 (vx >= 12)，触发特摄滑铲受身打水漂，绝不暴毙！
+        if (j.vx >= 12) {
+          j.y = 0.5;
+          j.vy = Math.max(13.5, Math.abs(j.vy) * 0.52 + 6.5);
+          j.vx *= 0.88;
+          S.shake = 6;
+          puff(j.x, 0.5, 22, '#d4b285', 12);
+          puff(j.x, 0.5, 14, '#ffd43b', 14);
+          window.kaijuAudio.play('skid');
+          toast('💨 特摄受身滑铲！贴地再弹起！');
+          mug('^o^', '双脚擦出火花！借力再冲一波！');
+        } else {
+          doLanding();
+        }
+      }
+    }
     if (S.frame % 6 === 0) updateHUD();
   }
 
@@ -726,19 +948,38 @@
     });
   }
 
-  // ---------------- 画面渲染 (特摄片场视差美学) ----------------
+  // ---------------- 画面渲染 (特摄片场视差美学与阶段换幕) ----------------
   function drawSky() {
-    // 拍摄天幕渐变 (顶棚微暗，地平线金黄)
+    const stage = S.stage || 1;
     const g = ctx.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, '#339af0');
-    g.addColorStop(0.55, '#74c0fc');
-    g.addColorStop(1, '#ffec99');
+
+    if (stage === 2) {
+      // 第2幕：夕阳怪兽大决战天幕
+      g.addColorStop(0, '#791a1a');
+      g.addColorStop(0.48, '#e8590c');
+      g.addColorStop(1, '#fcc419');
+    } else if (stage === 3) {
+      // 第3幕：深夜东京迷你霓虹天幕
+      g.addColorStop(0, '#0a0d1a');
+      g.addColorStop(0.52, '#152445');
+      g.addColorStop(1, '#2b3a67');
+    } else if (stage === 4) {
+      // 第4幕：宇宙月面特摄天幕
+      g.addColorStop(0, '#030308');
+      g.addColorStop(0.5, '#090a16');
+      g.addColorStop(1, '#181b34');
+    } else {
+      // 第1幕：白昼摄影棚天幕
+      g.addColorStop(0, '#339af0');
+      g.addColorStop(0.55, '#74c0fc');
+      g.addColorStop(1, '#ffec99');
+    }
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, H);
 
     // 摄影棚特有细节：天花板高处的黑色钢架桁架与悬挂的聚光排灯
     ctx.save();
-    ctx.strokeStyle = 'rgba(33, 37, 41, 0.4)';
+    ctx.strokeStyle = stage === 3 ? 'rgba(255, 255, 255, 0.25)' : 'rgba(33, 37, 41, 0.4)';
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(0, 24);
@@ -747,21 +988,72 @@
       ctx.moveTo(x, 0); ctx.lineTo(x + 30, 24);
       ctx.lineTo(x + 60, 0);
       // 挂在桁架上的小舞台射灯
-      ctx.fillStyle = '#495057';
+      ctx.fillStyle = stage === 3 ? '#ffd43b' : '#495057';
       ctx.fillRect(x + 22, 24, 16, 12);
     }
     ctx.stroke();
     ctx.restore();
 
-    // 摄影用人造小太阳
-    ctx.fillStyle = 'rgba(255, 236, 153, 0.85)';
-    ctx.beginPath();
-    ctx.arc(W * 0.82, H * 0.18, 44, 0, Math.PI * 2);
-    ctx.fill();
+    // 阶段专属天体与光照
+    if (stage === 2) {
+      // 夕阳巨大人造赤红太阳
+      ctx.fillStyle = 'rgba(255, 107, 107, 0.85)';
+      ctx.beginPath();
+      ctx.arc(W * 0.82, H * 0.22, 56, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (stage === 3) {
+      // 深夜探照灯光柱扫射
+      ctx.save();
+      ctx.fillStyle = 'rgba(255, 236, 153, 0.12)';
+      const sw1 = Math.sin(S.t * 1.5) * 120;
+      ctx.beginPath();
+      ctx.moveTo(W * 0.2, 24);
+      ctx.lineTo(W * 0.2 + sw1 - 80, H);
+      ctx.lineTo(W * 0.2 + sw1 + 80, H);
+      ctx.closePath();
+      ctx.fill();
+      const sw2 = Math.sin(S.t * 1.2 + 2) * 140;
+      ctx.beginPath();
+      ctx.moveTo(W * 0.75, 24);
+      ctx.lineTo(W * 0.75 + sw2 - 90, H);
+      ctx.lineTo(W * 0.75 + sw2 + 90, H);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    } else if (stage === 4) {
+      // 宇宙星空与悬吊的特摄地球模型
+      ctx.save();
+      // 闪烁星星
+      ctx.fillStyle = '#ffffff';
+      for (let i = 0; i < 28; i++) {
+        const sx = ((i * 137 + S.t * 5) % (W + 40));
+        const sy = (i * 47) % (H * 0.65);
+        ctx.fillRect(sx, sy, (i % 3 === 0) ? 2.5 : 1.5, (i % 3 === 0) ? 2.5 : 1.5);
+      }
+      // 吊在威亚上的纸板地球道具
+      const ex = W * 0.82, ey = H * 0.22;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(ex, ey); ctx.lineTo(ex, 0); ctx.stroke();
+      ctx.fillStyle = '#1c7ed6';
+      ctx.beginPath(); ctx.arc(ex, ey, 38, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#40c057';
+      ctx.beginPath(); ctx.arc(ex - 8, ey - 6, 16, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    } else {
+      // 白昼人造小太阳
+      ctx.fillStyle = 'rgba(255, 236, 153, 0.85)';
+      ctx.beginPath();
+      ctx.arc(W * 0.82, H * 0.18, 44, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
-    // 远景特摄微缩山峦与风车道具
+    // 远景特摄微缩山峦
+    const col1 = stage === 2 ? '#491217' : stage === 3 ? '#141d2f' : stage === 4 ? '#212529' : '#a9d99a';
+    const col2 = stage === 2 ? '#862e9c' : stage === 3 ? '#1f2d47' : stage === 4 ? '#343a40' : '#82c982';
+
     const off1 = (S.camX * PPM * 0.12) % 420;
-    ctx.fillStyle = '#a9d99a';
+    ctx.fillStyle = col1;
     ctx.beginPath();
     ctx.moveTo(-100, gy() + 20);
     for (let x = -100; x < W + 200; x += 20) {
@@ -772,7 +1064,7 @@
     ctx.fill();
 
     const off2 = (S.camX * PPM * 0.28) % 300;
-    ctx.fillStyle = '#82c982';
+    ctx.fillStyle = col2;
     ctx.beginPath();
     ctx.moveTo(-100, gy() + 30);
     for (let x = -100; x < W + 200; x += 16) {
@@ -782,8 +1074,8 @@
     ctx.closePath();
     ctx.fill();
 
-    // 微缩风车模型
-    ctx.strokeStyle = 'rgba(56, 102, 65, 0.55)';
+    // 微缩风车或微缩天线
+    ctx.strokeStyle = stage === 3 ? '#ffd43b' : 'rgba(56, 102, 65, 0.55)';
     ctx.lineWidth = 3;
     for (let i = -1; i < 7; i++) {
       const bx = (i * 300 - off2 * 0.6 + 120);
@@ -801,14 +1093,20 @@
 
   function drawGround() {
     const y = wy(0);
-    // 片场平整木质与黄色沙土混合地表
-    ctx.fillStyle = '#e9cca4';
+    const stage = S.stage || 1;
+    // 片场地表颜色随阶段演化
+    let groundCol = '#e9cca4', borderCol = '#d4b285';
+    if (stage === 2) { groundCol = '#c07238'; borderCol = '#8c4815'; }
+    else if (stage === 3) { groundCol = '#343a40'; borderCol = '#212529'; }
+    else if (stage === 4) { groundCol = '#adb5bd'; borderCol = '#868e96'; }
+
+    ctx.fillStyle = groundCol;
     ctx.fillRect(0, y, W, H - y + 300);
-    ctx.fillStyle = '#d4b285';
+    ctx.fillStyle = borderCol;
     ctx.fillRect(0, y, W, 9);
 
     // 摄影机微缩双钢轨 (地面导轨)
-    ctx.strokeStyle = '#868e96';
+    ctx.strokeStyle = stage === 3 ? '#ffd43b' : '#868e96';
     ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.moveTo(0, y + 16);
@@ -824,11 +1122,11 @@
       ctx.stroke();
     }
 
-    // 绘制地面特摄收场物件
+    // 绘制地面特摄设施与收场物件 (准确传入 sx 视口坐标！)
     for (let i = 0; i < S.ground.length; i++) {
       const g = S.ground[i], sx = wx(g.x);
       if (sx > -160 && sx < W + 160) {
-        window.drawGroundTokusatsuObj(ctx, g.type, g.w * PPM, wy(0));
+        window.drawGroundTokusatsuObj(ctx, g.type, g.w * PPM, wy(0), sx);
       }
     }
   }
@@ -1093,6 +1391,17 @@
       hit(makeEnt('mothra', 100, 40, Math.random));
       A('mothra_recharges', S.j.energy > 80 && S.carried > 0 && S.carryType === 'mothra');
       S.carried = 0;
+
+      // 验证地面设施与弹跳受身
+      startGame('distance', 0); press(); press(); S.holding = false;
+      S.j = { x: 50, y: 1, vx: 30, vy: -5, energy: 50, arm: 0 }; S.phase = 'flying';
+      triggerGroundFacility(makeGround('trampoline', 50, true));
+      A('trampoline_boost', S.j.vy > 30 && S.events['trampoline'] > 0);
+
+      // 验证贴地滑跳机制
+      S.j = { x: 80, y: 0, vx: 25, vy: -10, energy: 10, arm: 0 }; S.phase = 'flying';
+      step(1 / 60);
+      A('ground_skid_bounce', S.j.vy > 10 && S.phase === 'flying');
 
       // 验证安吉拉斯和背景画布的收场
       A('all_landings', Object.keys(window.TOKUSATSU_LANDINGS).length === 8 &&

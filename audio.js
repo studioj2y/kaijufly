@@ -134,6 +134,24 @@ class KaijuAudio {
         this.noise(0.1, 0.08);
         break;
 
+      case 'skid':
+        // 贴地滑铲摩擦音 + 弹性受身
+        this.noise(0.16, 0.22);
+        this.tone(260, 480, 0.18, 'sine', 0.12);
+        break;
+
+      case 'swoop':
+        // 极速俯冲破风呼啸
+        this.tone(480, 180, 0.25, 'triangle', 0.08);
+        break;
+
+      case 'stage':
+        // 换幕特摄铜管号角
+        [440, 554, 659, 880].forEach((f, i) => {
+          this.tone(f, f, 0.22, 'square', 0.08, i * 0.08);
+        });
+        break;
+
       case 'crash':
         // 落地大特写
         this.tone(150, 36, 0.5, 'sawtooth', 0.18);
