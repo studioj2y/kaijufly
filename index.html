@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>KAIJU FLY - 怪兽飞天 · 特摄片场大冒险</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="stage">
+  <!-- 游戏主画布 -->
+  <canvas id="cv"></canvas>
+
+  <!-- UI 遮罩与交互层 -->
+  <div id="ui">
+    <!-- 飞行中 HUD -->
+    <div id="hud" class="hidden">
+      <div class="hud-row">
+        <div class="energy-wrap">
+          <div class="energy-label">STAMINA / 探索体力</div>
+          <div class="energy-bar"><i id="energyFill"></i></div>
+        </div>
+        <div class="stat">飞行距离 <b id="distVal">0</b> m</div>
+        <div class="stat">特技连击 <b id="comboVal">0</b></div>
+        <div class="stat">最高纪录 <b id="bestVal">0</b> m</div>
+      </div>
+      <div id="missionBox" class="hidden"></div>
+      <div id="tip"></div>
+    </div>
+
+    <!-- 现场动态浮字与吐槽 -->
+    <div id="toast"></div>
+    <div id="bigText"></div>
+    <div id="mug" class="hidden">
+      <div class="mugFace" id="mugFace">^o^</div>
+      <div id="mugText">见学探险中！</div>
+    </div>
+    <button id="soundBtn">音效：开</button>
+
+    <!-- 1. 主菜单面版 (欢迎来到昭和特摄片场) -->
+    <div id="menu" class="panel">
+      <div class="card">
+        <div class="clapper-stripe"></div>
+        <div class="director-badge">🎬 TOKUSATSU STUDIO TOUR · 昭和特摄片场见学日</div>
+        <h1>KAIJU FLY</h1>
+        <div class="sub">怪 兽 飞 天 · 特 摄 片 场 大 冒 险</div>
+        <p class="lead">
+          好奇心爆棚的小朋友来到了梦寐以求的特摄电影制片厂！<br>
+          钻进剧组特制的<strong>“片场体验飞天大炮”</strong>，把自己轰向蓝天，掠过微缩大楼与巨兽模型，开启绝无仅有的奇妙见学之旅！
+        </p>
+        <div class="modes">
+          <button data-mode="distance">自由见学飞行<span>全力以赴！看一发能探索多远片场</span></button>
+          <button data-mode="career" class="alt">片场通告任务<span>按导演脚本完成指定特技并登上午报特报</span></button>
+        </div>
+        <div class="how">
+          <b>经典极简操作（仅需一个按键）</b>：空格 / 鼠标左键 / 触屏长按<br>
+          ① 按一下 <b>锁定大炮发射仰角</b><br>
+          ② 再按一下 <b>锁定装药发射力度</b><br>
+          ③ 出炮后 <b>按住不放</b>：小朋友像小鸟一样拼命挥舞手臂爬升微调，<b>消耗体力</b>；松开进入轻盈滑翔。飞得过陡会失速！<br>
+          <b>R</b> 重新发射　<b>Esc</b> 返回片场大门
+        </div>
+        <div class="legend">
+          拉顿超音速顺风车 · 摩斯拉鳞粉治愈充能 · 哥斯拉软胶大肚皮弹跳 · 防卫队战机掠过推力 · 基拉斯兄弟旋转飓风 · 特斯拉人工放电 · 8种爆笑见学收场纪念照
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. 普通收场结算面板 (自由模式) -->
+    <div id="result" class="panel hidden">
+      <div class="card">
+        <div class="clapper-stripe"></div>
+        <h2 id="resTitle">本 次 见 学 收 场</h2>
+        <div class="resNumbers">
+          <div><span>FLIGHT DISTANCE</span><b id="resDist">0</b><span>米</span></div>
+          <div><span>STUNT SCORE</span><b id="resScore">0</b><span>分</span></div>
+          <div><span>BEST DISTANCE</span><b id="resBest">0</b><span>米</span></div>
+        </div>
+        <p id="resNote"></p>
+        <div class="btns">
+          <button id="again">再发射一次！</button>
+          <button id="nextMission" class="hidden">下一部通告</button>
+          <button id="backMenu">返回片场大门</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. 特摄特报 / 见学纪念拍立得 (通告任务模式) -->
+    <div id="paper" class="panel hidden">
+      <div class="paper">
+        <div class="masthead">THE DAILY TOKUSATSU · 特摄片场特报</div>
+        <div class="paper-meta">
+          <span>EXTRA! 见学纪念</span>
+          <span id="paperDate"></span>
+          <span>SPECIAL EDITION</span>
+        </div>
+        <h1 id="paperHead"></h1>
+        <div class="paper-sub" id="paperSub"></div>
+        <div class="paper-body">
+          <canvas id="paperPic" width="500" height="360"></canvas>
+          <div class="paper-text" id="paperText"></div>
+        </div>
+        <div class="btns">
+          <button id="paperNext">进入下一场拍摄</button>
+          <button id="paperMenu">返回片场大门</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 测试输出隐藏节点 -->
+<pre id="test-out" style="display:none"></pre>
+
+<!-- 模块化脚本加载 -->
+<script src="audio.js"></script>
+<script src="landings.js"></script>
+<script src="entities.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
