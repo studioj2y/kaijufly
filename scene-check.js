@@ -1,8 +1,11 @@
-const assert = require('assert/strict'), fs = require('fs'), vm = require('vm');
+const assert = require('assert/strict');
 const { createGame } = require('./balance-check');
-const context = { window: {} };
-vm.runInNewContext(fs.readFileSync(__dirname + '/world_layout.js', 'utf8'), context);
-const layout = context.window.kaijuLayout;
+// Measure final world geometry independently of the placement predicate.
+// Otherwise a broken predicate returning true would also make this test pass.
+function footprint(e, ground) {
+  const height=e.h*(!ground&&['rodan','mothra'].includes(e.type)?1.6:1);
+  return {x:e.x,y:ground||['gillas','oilrig'].includes(e.type)?height/2:e.y,w:e.w,h:height};
+}
 let worlds = 0, pairs = 0;
 for (let seed = 1; seed <= 24; seed++) {
   const { game } = createGame(seed, seed % 2 ? 0 : 3);
@@ -12,7 +15,10 @@ for (let seed = 1; seed <= 24; seed++) {
     const all = game.S.air.map(e => [e, false]).concat(game.S.ground.map(e => [e, true]));
     for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++) {
       const [a, grounded] = all[i], [b, otherGround] = all[j];
-      assert.ok(layout.clear(a, otherGround ? [] : [b], otherGround ? [b] : [], grounded), `${seed}: ${a.type}/${b.type} overlap`);
+      const A=footprint(a,grounded),B=footprint(b,otherGround);
+      const gapX=Math.abs(A.x-B.x)-(A.w+B.w)/2,gapY=Math.abs(A.y-B.y)-(A.h+B.h)/2;
+      const same=a.type===b.type;
+      assert.ok(Math.max(gapX/(same?20:9),gapY/(same?12:5))>=1-1e-9,`${seed}: ${a.type}/${b.type} overlap`);
       pairs++;
     }
     worlds++;
