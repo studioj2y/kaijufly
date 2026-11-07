@@ -57,6 +57,17 @@
   endings.forEach(name => ['boy', 'girl'].forEach(gender => {
     for (let i = 0; i < 7; i++) files['ending-' + name + '-' + gender + '-' + i] = revision + 'ending-' + name + '-' + gender + '-' + i + '.png';
   }));
+  const current='art_prototypes/revision6/';
+  files.cannon=current+'human-cannon.png';
+  for(const name of ['gamera','anguirus']) {
+    files[name]=current+name+'-frame-0.png';
+    for(let i=0;i<7;i++)files[name+'Frame'+i]=current+name+'-frame-'+i+'.png';
+  }
+  for(let i=0;i<2;i++)opening['title-plate-'+i]=current+'title-plate-'+i+'.png';
+  for(const stage of ['day','sunset','night','moon'])for(let i=0;i<3;i++)files['parallax-'+stage+'-'+i]=current+'parallax-'+stage+'-'+i+'.png';
+  for(let i=0;i<8;i++)files['decor-'+i]=current+'decor-'+i+'.png';
+  for(let i=0;i<3;i++){files['floor-texture-'+i]=current+'floor-texture-'+i+'.png';delete files['ground-strip-'+i];}
+  for(const gender of ['boy','girl'])for(let i=0;i<7;i++)files['ending-anguirus-'+gender+'-'+i]=current+'ending-anguirus-'+gender+'-'+i+'.png';
   if (typeof Image !== 'undefined') {
     const byPath = new Map(), queue = [];
     Object.entries({ ...opening, ...files }).forEach(([name, path]) => {

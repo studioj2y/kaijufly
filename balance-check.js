@@ -42,7 +42,7 @@ function createGame(seed, rank = 0) {
   vm.runInNewContext(fs.readFileSync(__dirname + '/progression.js', 'utf8'), context);
   vm.runInNewContext(fs.readFileSync(__dirname + '/air_distribution.js', 'utf8'), context);
   vm.runInNewContext(fs.readFileSync(__dirname + '/world_layout.js', 'utf8'), context);
-  vm.runInNewContext(fs.readFileSync(__dirname + '/art_prototypes/revision5/manifest.js', 'utf8'), context);
+  vm.runInNewContext(fs.readFileSync(__dirname + '/art_prototypes/revision6/manifest.js', 'utf8'), context);
   for (const item of window.kaijuProgress.catalog) {
     window.kaijuProgress.data.owned[item.id] = rank;
     window.kaijuProgress.data.equipped[item.id] = rank;

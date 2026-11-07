@@ -164,7 +164,7 @@
       case 'cloud': return [32, 26];
       case 'rodan': return [16, 7];
       case 'mothra': return [16, 8];
-      case 'gamera': return [19, 15];
+      case 'gamera': return [19, 9];
       case 'plane': return [14, 6];
       case 'gillas': return [16, 18];
       case 'oilrig': return [25, 44];
@@ -203,7 +203,8 @@
   function makeGround(t, x, isFacility = false) {
     const ratio = window.kaijuSceneAssets && window.kaijuSceneAssets.groundRatios[t];
     const h = ratio ? Math.min(window.kaijuLayout.groundHeights[t], groundSize(t) / ratio) : window.kaijuLayout.groundHeights[t];
-    return { type: t, x: x, w: ratio ? h * ratio : groundSize(t), h, hit: false, isFacility: isFacility };
+    return { type: t, x: x, w: ratio ? h * ratio : groundSize(t), h, hit: false, isFacility: isFacility,
+      walkSpeed: t === 'anguirus' ? 2 : 0, walkT: 0, walking: false };
   }
 
   function placeEntity(create, grounded = false) {
@@ -247,7 +248,9 @@
     // 规律生成见学收场道具 (安吉拉斯、背景画板、东京铁塔等)
     const endN = 1 + Math.floor(r() * 2);
     for (let i = 0; i < endN; i++) {
-      const lt = GROUND_LANDING_TYPES[Math.floor(r() * GROUND_LANDING_TYPES.length)];
+      // Three tickets for Anguirus, one for each other ending (~30%).
+      const ticket = Math.floor(r() * (GROUND_LANDING_TYPES.length + 2));
+      const lt = ticket < 3 ? 'anguirus' : GROUND_LANDING_TYPES.filter(t => t !== 'anguirus')[ticket - 3];
       const margin = start === 0 ? 65 : 22;
       placeEntity(() => makeGround(lt, start + margin + r() * (CHUNK - margin - 22), false), true);
     }
@@ -362,6 +365,7 @@
     $('hud').classList.add('hidden');
     $('mug').classList.add('hidden');
     $('bigText').classList.remove('on');
+    $('toast').classList.remove('on'); toastTimer = 0; mugTimer = 0;
     S.dist = 0; S.bonus = 0; S.combo = 0; S.events = {};
     S.j.x = 0; S.j.y = 0; S.camX = 0; S.camY = 0;
   }
@@ -381,7 +385,7 @@
     S.j = { x: 0, y: 0, vx: 0, vy: 0, energy: maxEnergy(), arm: 0 };
     S.holding = false; S.dist = 0; S.bonus = 0; S.combo = 0; S.comboTimer = 0; S.events = {}; S.stage = 1; S.skids = 0;
     S.camX = 0; S.camY = 0; S.shake = 0; S.flash = 0; S.skeleton = 0; S.stun = 0; S.spin = 0;
-    S.carried = 0; S.carryType = null;
+    S.carried = 0; S.carryType = null; S.whirl = null; S.orbitCameraOffset = 0; S.launchNotice = 0;
     S.particles = []; S.landingType = 'sand'; S.landingT = 0; S.landingObj = null; S.missionOk = false; S.frozen = false;
 
     buildWorld();
@@ -392,6 +396,7 @@
     $('hud').classList.remove('hidden');
     $('mug').classList.add('hidden');
     $('bigText').classList.remove('on');
+    $('toast').classList.remove('on'); toastTimer = 0; mugTimer = 0;
 
     const mb = $('missionBox');
     if (S.mission) {
@@ -407,13 +412,18 @@
     const a = S.angle * Math.PI / 180, v0 = 42 + S.power * 0.58;
     S.j.vx = v0 * Math.cos(a);
     S.j.vy = v0 * Math.sin(a);
-    S.j.x = 0; S.j.y = 2; S.j.energy = maxEnergy();
+    S.j.x = 0; S.j.y = cannonGeometry().launchHeight; S.j.energy = maxEnergy();
+    // The raised launch aperture adds height. Compensate its vertical impulse
+    // under our linear drag so the established early-game flight envelope is
+    // preserved instead of granting a free boost into long recharge chains.
+    S.j.vy -= (S.j.y - 2) * VDRAG;
     S.phase = 'flying'; S.holding = false; S.shake = 10; S.flash = 0.25;
 
-    puff(0, 3, 28, '#ffd43b', 16);
+    puff(0, S.j.y, 28, '#e5c17b', 16);
     window.kaijuAudio.play('launch');
-    toast('🚀 出炮升空！按住长按挥舞双臂！');
-    $('tip').textContent = '按住 空格 / 鼠标 / 屏幕 挥动手臂爬升，松开滑翔';
+    S.launchNotice = 1.4;
+    toast('发射！');
+    $('tip').textContent = '发射！';
   }
 
   function addStunt(k, pts) {
@@ -478,8 +488,14 @@
         break;
 
       case 'gillas':
-        // 雷欧名场面：基拉斯兄弟旋转！被飓风卷上天旋转！
-        j.vy = 38; j.vx *= 0.85; S.spin = 1.6; S.shake = 10;
+        // Orbit the whirlwind twice before releasing; consume this encounter once.
+        S.carried = 0; S.spin = 0;
+        S.whirl = { entity: e, t: 0, duration: 1.8, turns: 0, cx: e.x,
+          cy: Math.max(6, Math.min(e.h - 3, j.y)), rx: e.w * .58, ry: 2.7,
+          startX: j.x, startY: j.y, releaseVx: Math.max(26, j.vx * .85) };
+        S.whirl.startAngle = Math.atan2((j.y - S.whirl.cy) / S.whirl.ry, (j.x - e.x) / S.whirl.rx);
+        S.whirl.angle = S.whirl.startAngle;
+        j.vx = 0; j.vy = 0; S.shake = 5;
         puff(e.x, e.y, 32, '#ffa94d', 18);
         window.kaijuAudio.play('gillas');
         addStunt('gillas', 170);
@@ -531,6 +547,7 @@
       const hitW = e.type === 'cloud' ? 18 : e.w, hitH = e.type === 'cloud' ? 9 : e.h;
       if (Math.abs(e.x - j.x) < hitW / 2 + 2.0 && Math.abs(e.y - j.y) < hitH / 2 + 2.0) {
         hit(e);
+        if (S.whirl) return;
       }
     }
   }
@@ -657,7 +674,10 @@
     let first = null, firstTime = Infinity;
     for (const g of S.ground) {
       if (g.isFacility || g.hit) continue;
-      const contact = window.kaijuLayout.sweptContact(previous, S.j, window.kaijuLayout.bounds(g, true));
+      const moved = g.walkFrame === S.frame ? g.x - g.previousX : 0;
+      // Relative sweep catches the moving creature crossing the player's path.
+      const from = { x: previous.x + moved, y: previous.y };
+      const contact = window.kaijuLayout.sweptContact(from, S.j, window.kaijuLayout.bounds(g, true));
       if (contact !== null && contact < firstTime) { first = g; firstTime = contact; }
     }
     if (!first) return false;
@@ -665,6 +685,7 @@
     S.j.y = previous.y + (S.j.y - previous.y) * firstTime;
     S.dist = Math.max(previous.dist, S.j.x);
     S.camX = Math.max(0, S.j.x);
+    if (first.walkFrame === S.frame) first.x = first.previousX + (first.x - first.previousX) * firstTime;
     doLanding(first.type, first);
     return true;
   }
@@ -677,7 +698,7 @@
     if (window.kaijuArt) window.kaijuArt.prioritize(Array.from({length: 7}, (_, i) => 'ending-' + S.landingType + '-' + S.character + '-' + i));
     S.landingObj = g;
     if (g) g.hit = true;
-    S.j.vx = 0; S.j.vy = 0; S.carried = 0;
+    S.j.vx = 0; S.j.vy = 0; S.carried = 0; S.whirl = null;
     S.phase = 'landing';
     S.landingT = 0; S.holding = false; S.shake = 15; S.flash = 0.35;
 
@@ -690,8 +711,10 @@
     $('toast').classList.remove('on');
     $('hud').classList.add('hidden');
 
-    if (S.landingType === 'anguirus' || S.landingType === 'canvas') {
+    if (S.landingType === 'canvas') {
       window.kaijuAudio.play('tear');
+    } else if (S.landingType === 'anguirus') {
+      window.kaijuAudio.play('skid');
     } else {
       window.kaijuAudio.play('crash');
     }
@@ -783,9 +806,11 @@
     }
 
     if (S.phase === 'aim') {
-      $('tip').textContent = '① 按一下锁定大炮发射仰角：' + S.angle.toFixed(0) + '°';
+      $('tip').textContent = '人间大炮一级准备';
     } else if (S.phase === 'power') {
-      $('tip').textContent = '② 再按一下锁定火药装填力度：' + S.power.toFixed(0) + '%';
+      $('tip').textContent = '人间大炮二级准备';
+    } else if (S.phase === 'flying') {
+      $('tip').textContent = S.launchNotice > 0 ? '发射！' : S.whirl ? '卷入吉拉斯旋风 · 旋转两圈后抛出' : '按住 空格 / 鼠标 / 屏幕 挥动手臂爬升，松开滑翔';
     }
   }
 
@@ -807,6 +832,11 @@
     if (S.skeleton > 0) S.skeleton = Math.max(0, S.skeleton - dt);
     if (S.stun > 0) S.stun = Math.max(0, S.stun - dt);
     if (S.spin > 0) S.spin = Math.max(0, S.spin - dt);
+    if (S.launchNotice > 0) {
+      S.launchNotice = Math.max(0, S.launchNotice - dt);
+      if (S.launchNotice === 0) updateHUD();
+    }
+    if ((S.phase === 'intro' && S.introT >= 1.85) || S.phase === 'menu' || (S.phase === 'workshop' && workshopReturn === 'menu')) S.openingFloatT = (S.openingFloatT || 0) + dt;
     if (S.comboTimer > 0) { S.comboTimer -= dt; if (S.comboTimer <= 0) S.combo = 0; }
 
     switch (S.phase) {
@@ -832,9 +862,48 @@
   }
 
   let flapSfxT = 0;
+  function updateWalkers(dt) {
+    // Update rightmost first so walkers can follow one another without overlap.
+    const walkers = S.ground.filter(g => g.walkSpeed && !g.hit).sort((a, b) => b.x - a.x);
+    for (const g of walkers) {
+      g.previousX = g.x; g.walkFrame = S.frame;
+      let advance = g.walkSpeed * dt;
+      const a = window.kaijuLayout.bounds(g, true);
+      for (const other of S.ground.concat(S.air)) {
+        if (other === g) continue;
+        const b = window.kaijuLayout.bounds(other, S.ground.includes(other));
+        const same = other.type === g.type, gapX = same ? 20 : 9, gapY = same ? 12 : 5;
+        if (a.top + gapY <= b.bottom || a.bottom >= b.top + gapY || b.right <= a.left) continue;
+        advance = Math.min(advance, Math.max(0, b.left - a.right - gapX));
+      }
+      g.x += advance; g.walking = advance > 1e-6;
+      if (g.walking) g.walkT += dt;
+    }
+  }
+  function updateWhirl(dt) {
+    const w = S.whirl, j = S.j;
+    w.t = Math.min(w.duration, w.t + dt);
+    w.turns = 2 * w.t / w.duration;
+    w.angle = w.startAngle + w.turns * Math.PI * 2;
+    const enter = Math.min(1, w.t / .16);
+    j.x = w.startX * (1 - enter) + (w.cx + Math.cos(w.angle) * w.rx) * enter;
+    j.y = w.startY * (1 - enter) + (w.cy + Math.sin(w.angle) * w.ry + w.t * 2.2) * enter;
+    j.arm += dt * 9;
+    S.camX += (Math.max(0, w.cx) - S.camX) * Math.min(1, dt * 5);
+    if (w.t >= w.duration) {
+      // Release at the actual orbit position without a last-frame teleport.
+      j.vx = w.releaseVx; j.vy = 38;
+      S.orbitCameraOffset = S.camX - j.x;
+      S.dist = Math.max(S.dist, j.x); S.whirl = null;
+      toast('吉拉斯旋风 · 两圈完成，飞出！');
+    }
+    updateHUD();
+  }
   function updateFlight(dt) {
     const j = S.j;
     const previous = { x: j.x, y: j.y, dist: S.dist };
+    updateWalkers(dt);
+    if (S.whirl) { updateWhirl(dt); return; }
 
     // 拉顿高速顺风车 或 摩斯拉神圣鳞粉带飞
     if (S.carried > 0) {
@@ -917,7 +986,8 @@
 
     if (j.y < 0) j.y = 0;
     S.dist = Math.max(S.dist, j.x);
-    S.camX = Math.max(0, j.x);
+    S.orbitCameraOffset = (S.orbitCameraOffset || 0) * Math.exp(-dt * 12);
+    S.camX = Math.max(0, j.x + S.orbitCameraOffset);
     const targetCamY = Math.max(0, j.y - H * 0.48 / PPM);
     S.camY += (targetCamY - S.camY) * Math.min(1, dt * 3);
 
@@ -928,6 +998,7 @@
 
     if (S.carried <= 0) {
       checkCollisions();
+      if (S.whirl) return;
       checkGroundFacilities();
     }
 
@@ -990,7 +1061,7 @@
     const roster = window.kaijuScene.monsters;
     S.openingMonster = roster[Math.floor(Math.random() * roster.length)];
     window.kaijuArt.prioritize(['opening-background', 'opening-hero-' + S.character, 'opening-' + S.openingMonster]);
-    S.introT = 0; S.phase = 'intro'; S.frozen = false; S.holding = false;
+    S.introT = 0; S.openingFloatT = 0; S.phase = 'intro'; S.frozen = false; S.holding = false;
     ['menu', 'characterSelect', 'result', 'paper', 'hud', 'mug'].forEach(id => $(id).classList.add('hidden'));
     $('skipOpening').classList.remove('hidden');
     // Always show the requested three-stage entrance. Skipping is explicit.
@@ -1261,7 +1332,7 @@
     for (let i = 0; i < S.ground.length; i++) {
       const g = S.ground[i], sx = wx(g.x);
       if (sx > -160 && sx < W + 160) {
-        const art = window.kaijuArt && window.kaijuArt.get(g.type);
+        const art = window.kaijuArt && (g.type === 'anguirus' ? window.kaijuArt.frame('anguirus', g.walkT || 0) : window.kaijuArt.get(g.type));
         if (art) {
           const scale = Math.min(g.w * PPM / art.width, g.h * PPM / art.height);
           const dw = art.width * scale, dh = art.height * scale;
@@ -1275,88 +1346,33 @@
     }
   }
 
+  function cannonGeometry() {
+    const image = window.kaijuArt && window.kaijuArt.get('cannon');
+    const width = W < 600 ? 150 : 208, height = image ? width * image.height / image.width : width * 1.01;
+    // Aperture registered to the yellow rectangular opening in the painting.
+    const x = wx(0), y = wy(0), left = x - width * .77, top = y - height + 2;
+    const muzzleY = top + height * .425;
+    return {image,width,height,left,top,x,muzzleY,launchHeight:(y-muzzleY)/PPM};
+  }
   function drawCannon() {
-    const x = wx(0), y = wy(0);
-    const cannonArt = window.kaijuArt && window.kaijuArt.get('cannon');
-    if (cannonArt) {
-      const width = 160, height = width * cannonArt.height / cannonArt.width;
-      ctx.drawImage(cannonArt, x - width * 0.49, y - height + 13, width, height);
-      if (S.phase === 'power') {
-        ctx.fillStyle = 'rgba(233, 185, 96, ' + (0.18 + S.power / 300) + ')';
-        ctx.beginPath();
-        ctx.arc(x + 48, y - height * 0.72, 7 + S.power * 0.10, 0, Math.PI * 2);
-        ctx.fill();
+    const c = cannonGeometry();
+    if (c.image) {
+      ctx.drawImage(c.image,c.left,c.top,c.width,c.height);
+      if(S.phase==='power'){
+        const glow=ctx.createRadialGradient(c.x,c.muzzleY,1,c.x,c.muzzleY,18);
+        glow.addColorStop(0,'rgba(255,229,160,'+(.3+S.power/220)+')');glow.addColorStop(1,'rgba(255,229,160,0)');
+        ctx.fillStyle=glow;ctx.fillRect(c.x-18,c.muzzleY-18,36,36);
       }
-    } else {
-    ctx.save();
-    ctx.translate(x, y - 14);
-
-    // 轮式木架与场记板黑黄警示斑马条纹
-    ctx.fillStyle = '#fcc419';
-    window.rr(ctx, -36, -8, 72, 22, 5);
-    ctx.fill();
-    ctx.strokeStyle = '#212529';
-    ctx.lineWidth = 3;
-    ctx.stroke();
-
-    // 斑马条纹
-    ctx.save();
-    ctx.clip();
-    ctx.fillStyle = '#212529';
-    for (let i = -40; i < 40; i += 16) {
-      ctx.beginPath();
-      ctx.moveTo(i, -10);
-      ctx.lineTo(i + 10, -10);
-      ctx.lineTo(i + 2, 25);
-      ctx.lineTo(i - 8, 25);
-      ctx.fill();
     }
-    ctx.restore();
-
-    // 两个大轮子
-    ctx.fillStyle = '#343a40';
-    ctx.beginPath();
-    ctx.arc(-22, 14, 15, 0, Math.PI * 2);
-    ctx.arc(22, 14, 15, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 炮管
-    ctx.save();
-    ctx.rotate(-S.angle * Math.PI / 180);
-    ctx.fillStyle = '#e03131';
-    window.rr(ctx, 0, -16, 78, 32, 8);
-    ctx.fill();
-    ctx.fillStyle = '#ffd43b';
-    ctx.fillRect(8, -13, 62, 7);
-    ctx.fillStyle = '#212529';
-    window.rr(ctx, 70, -18, 10, 36, 4);
-    ctx.fill();
-
-    // 蓄力时的片场聚光辉光
-    if (S.phase === 'power') {
-      ctx.fillStyle = 'rgba(255, 212, 59, ' + (0.3 + S.power / 150) + ')';
-      ctx.beginPath();
-      ctx.arc(80, 0, 8 + S.power * 0.12, 0, Math.PI * 2);
-      ctx.fill();
+    // Aim guide leaves the human launch opening, matching the flight origin.
+    ctx.save();ctx.strokeStyle='rgba(237,225,198,.8)';ctx.lineWidth=2;ctx.setLineDash([8,9]);
+    const a=S.angle*Math.PI/180;
+    ctx.beginPath();ctx.moveTo(c.x,c.muzzleY);
+    for(let i=1;i<=9;i++){
+      const d=i*9,v=42+S.power*.58,t=d/v;
+      ctx.lineTo(c.x+Math.cos(a)*d*PPM*.6,c.muzzleY-(Math.sin(a)*d-7*t*t)*PPM*.6);
     }
-    ctx.restore();
-    ctx.restore();
-    }
-
-    // 虚线发射瞄准辅助线
-    ctx.save();
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-    ctx.lineWidth = 2;
-    ctx.setLineDash([8, 9]);
-    const a = S.angle * Math.PI / 180;
-    ctx.beginPath();
-    ctx.moveTo(x, y - 14);
-    for (let i = 1; i <= 9; i++) {
-      const d = i * 9, v = 42 + S.power * 0.58, t = d / v;
-      ctx.lineTo(x + Math.cos(a) * d * PPM * 0.6, y - 14 - (Math.sin(a) * d - 7 * t * t) * PPM * 0.6);
-    }
-    ctx.stroke();
-    ctx.restore();
+    ctx.stroke();ctx.restore();
   }
 
   function drawMeter() {
@@ -1369,7 +1385,7 @@
     ctx.fillStyle = '#fff';
     ctx.font = 'bold 14px sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText(S.phase === 'aim' ? '① 发射仰角  ANGLE' : '② 装药力度  POWER', x, y - 12);
+    ctx.fillText(S.phase === 'aim' ? '一级准备 · 发射仰角' : '二级准备 · 推进功率', x, y - 12);
 
     ctx.fillStyle = '#212529';
     window.rr(ctx, x, y, w, 16, 8);
@@ -1395,7 +1411,10 @@
   function render() {
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     ctx.clearRect(0, 0, W, H);
-    if (window.kaijuScene && (['character', 'intro', 'menu'].includes(S.phase) || (S.phase === 'workshop' && workshopReturn === 'menu'))) {
+    const isOpening = ['character', 'intro', 'menu'].includes(S.phase) || (S.phase === 'workshop' && workshopReturn === 'menu');
+    const scene = isOpening ? 'opening' : 'play';
+    if ($('stage').dataset.scene !== scene) $('stage').dataset.scene = scene;
+    if (window.kaijuScene && isOpening) {
       window.kaijuScene.opening(ctx, S, W, H);
       return;
     }
@@ -1414,7 +1433,7 @@
     for (let i = 0; i < S.air.length; i++) {
       const e = S.air[i], sx = wx(e.x), sy = wy(e.y);
       if (sx > -200 && sx < W + 200 && sy > -300 && sy < H + 300) {
-        ctx.globalAlpha = e.hit ? 0.3 : 1;
+        ctx.globalAlpha = e.hit && S.whirl?.entity !== e ? 0.3 : 1;
         const artName = e.type === 'mothra' ? 'moth' : e.type;
         const airArt = window.kaijuArt && (['moth', 'rodan', 'gillas', 'cloud', 'gamera', 'oilrig'].includes(artName) ? window.kaijuArt.frame(artName, S.t + e.ph) : window.kaijuArt.get(artName));
         if (airArt) {
@@ -1426,7 +1445,7 @@
           const foot = window.kaijuArt.groundAnchor(artName, S.t + e.ph);
           const rootY = wy(0) + (artName === 'oilrig' ? 3 : 0) + dh * (.5 - foot);
           ctx.translate(sx + (rooted ? 0 : Math.sin(S.t * 1.4 + e.ph) * 3), rooted ? rootY : sy + Math.sin(S.t * 2 + e.ph) * 4);
-          if (!rooted) ctx.rotate(Math.sin(S.t * 1.7 + e.ph) * 0.025);
+          if (!rooted && artName !== 'gamera') ctx.rotate(Math.sin(S.t * 1.7 + e.ph) * 0.025);
           ctx.drawImage(airArt, -dw / 2, -dh / 2, dw, dh);
           ctx.restore();
         } else {
@@ -1456,7 +1475,7 @@
       if (S.phase === 'landing') {
         // The collision plays its dedicated seven-frame scene above the world.
       } else {
-        const rot = S.carried > 0 ? 0 : S.spin > 0 ? S.t * 14 : clamp(Math.atan2(-S.j.vy, Math.max(1, S.j.vx)) * 0.55, -0.6, 0.9);
+        const rot = S.whirl ? Math.sin(S.whirl.angle) * .22 : S.carried > 0 ? 0 : S.spin > 0 ? S.t * 14 : clamp(Math.atan2(-S.j.vy, Math.max(1, S.j.vx)) * 0.55, -0.6, 0.9);
         const pilotPose = S.carried > 0 ? 'pilot' : S.holding && S.j.energy > 0 ? 'pilotFlap' : S.j.vy < -8 ? 'pilotDive' : 'pilot';
         const flapTime = Math.max(0, S.t - (S.flapStartedAt || 0));
         const pilotArt = window.kaijuArt && (pilotPose === 'pilotFlap' ? window.kaijuArt.frame('pilot', flapTime, 5) : window.kaijuArt.get(pilotPose) || window.kaijuArt.get('pilot'));
@@ -1478,10 +1497,24 @@
           const spriteW = W < 600 ? 106 : 122, spriteH = spriteW * pilotArt.height / pilotArt.width;
           ctx.save();
           ctx.translate(jx, jy);
+          if (S.whirl) {
+            const depth = Math.sin(S.whirl.angle), scale = .88 + depth * .12;
+            ctx.scale(scale * Math.cos(S.whirl.angle), scale);
+            ctx.globalAlpha = depth < 0 ? .65 : 1;
+          }
           ctx.rotate(rot + (S.holding && S.carried <= 0 ? Math.sin(S.j.arm) * 0.035 : 0));
           if (showBones) ctx.filter = 'grayscale(1) brightness(2.4) contrast(1.6)';
           ctx.drawImage(pilotArt, -spriteW * 0.57, -spriteH * 0.5, spriteW, spriteH);
           ctx.restore();
+          if (S.whirl && Math.sin(S.whirl.angle) < 0) {
+            // The far half of the orbit passes behind the painted wind/suits.
+            const e=S.whirl.entity,wind=window.kaijuArt.frame('gillas',S.t+e.ph);
+            if(wind){
+              const scale=Math.min(e.w*PPM/wind.width,e.h*PPM/wind.height),w=wind.width*scale,h=wind.height*scale;
+              ctx.save();ctx.globalAlpha=-Math.sin(S.whirl.angle)*.85;
+              ctx.drawImage(wind,wx(e.x)-w/2,wy(0)-h,w,h);ctx.restore();
+            }
+          }
         } else {
           window.drawKidCharacter(ctx, jx, jy, 46, {
             rot: rot,

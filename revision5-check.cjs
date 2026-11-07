@@ -5,7 +5,7 @@ const assert=require('assert/strict'),fs=require('fs');
  const context=await browser.newContext({viewport:{width:1440,height:900}});
  const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('http://127.0.0.1:8765/');
- const all=Object.keys(JSON.parse(fs.readFileSync('art_prototypes/revision5/alpha-audit.json','utf8'))).filter(n=>!n.startsWith('portrait-'));
+ const all=Object.keys(JSON.parse(fs.readFileSync('art_prototypes/revision5/alpha-audit.json','utf8'))).filter(n=>!n.startsWith('portrait-')&&!n.startsWith('ground-strip-'));
  const keys=all.map(n=>n.replace('.png','').replace(/^(gamera|cloud|oilrig)-frame-(\d)$/,'$1Frame$2').replace(/^prop-/,''));
  await page.waitForFunction(keys=>keys.every(k=>window.kaijuArt.get(k)),keys,{timeout:90000});
  await page.screenshot({path:'art_prototypes/revision5/qa-picker.png'});
@@ -42,7 +42,10 @@ const assert=require('assert/strict'),fs=require('fs');
  const drift=await page.evaluate(()=>{
   const g=window.__KAIJU__,s=g.S,c=document.getElementById('cv').getContext('2d'),draw=c.drawImage;
   s.camY=980;s.j.y=1005;g.ensureWorld();const snapshots=[];
-  for(const t of [0,8]){s.t=t;const log=[];c.drawImage=function(im,...a){if(im.src?.includes('parallax-'))log.push({src:im.src,x:a[0]});return draw.call(this,im,...a);};g.render();snapshots.push(log);}
+  for(const t of [0,8]){s.t=t;const log=[];c.drawImage=function(im,...a){
+   const source=im.src?.includes('parallax-')?im:im instanceof HTMLCanvasElement?[0,1,2].map(i=>window.kaijuArt.get('parallax-day-'+i)).find(source=>source.height===im.height):null;
+   if(source)log.push({src:source.src,x:a[0]});return draw.call(this,im,...a);
+  };g.render();snapshots.push(log);}
   c.drawImage=draw;return snapshots;
  });
  for(const layer of [0,1,2]){

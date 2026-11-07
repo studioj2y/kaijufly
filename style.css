@@ -599,6 +599,10 @@ html, body {
 #menu .how { padding: 6px 10px; font-size: 12px; }
 #menu summary { cursor: pointer; text-align: center; font-weight: 700; }
 #skipOpening { position: absolute; bottom: 24px; right: 24px; pointer-events: auto; padding: 10px 16px; color: #f0e2c6; background: #29343bdd; border: 1px solid #d0ba8f; cursor: pointer; border-radius: 3px; font: 13px inherit; }
+#stage[data-scene="opening"] #soundBtn { top: 144px; }
+@media (max-width: 600px) {
+  #stage[data-scene="opening"] #soundBtn { top: 100px; }
+}
 #characterSelect { background: rgba(20,29,34,.40); backdrop-filter: blur(2px); }
 .character-card { max-width: 710px; }
 #resPic { display: block; width: min(100%, 360px); height: auto; max-height: 24vh; object-fit: contain; margin: 8px auto 14px; }

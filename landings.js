@@ -8,7 +8,7 @@ const TOKUSATSU_LANDINGS = {
     head: '巨兽临时坐骑！背甲上多了一位见学客',
     bonus: 80,
     face: '>///<',
-    note: '安吉拉斯停下脚步，小朋友扶着背甲，不好意思地挥了挥手。',
+    note: '安吉拉斯慢慢向前走，小朋友坐稳背甲，开心地挥手结束这次见学。',
     missionName: '安吉拉斯'
   },
   canvas: {
@@ -511,28 +511,28 @@ function drawTokusatsuLandingVignette(ctx, type, cx, cy, scale, t, Wd, Hd) {
 
   const wob = Math.sin(t * 8) * 0.08;
 
-  // 1. 安吉拉斯尖刺划破短裤！(搞笑红心短裤演出)
+  // 1. 坐上安吉拉斯，顺路骑行收场；服装保持完整。
   if (type === 'anguirus') {
     ctx.save();
     ctx.translate(-70, 0);
     drawGroundTokusatsuObj(ctx, 'anguirus', 140, 0);
     ctx.restore();
 
-    // 小朋友倒栽葱倒挂在尖刺上，露出红心短裤
+    // Both visitors sit upright above the back in the fallback presentation.
     ctx.save();
     ctx.translate(0, -60);
-    ctx.rotate(-0.35 + wob);
+    ctx.rotate(wob * .4);
     drawKidCharacter(ctx, 0, 0, 96, {
       arm: t * 6,
-      tearPants: true,
-      blushing: true
+      tearPants: false,
+      blushing: false
     });
     ctx.restore();
 
     // 羞嗒嗒文字
     ctx.fillStyle = '#c92a2a';
     ctx.font = 'bold 15px sans-serif';
-    ctx.fillText('/// 凉飕飕！///', 70, -75);
+    ctx.fillText('搭个顺风车！', 70, -75);
   }
 
   // 2. 撞穿手绘天空富士山背景布
