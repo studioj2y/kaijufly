@@ -17,5 +17,5 @@ monsters={
 }
 for name,subject in monsters.items():
  prompts['opening-'+name]='Use case: stylized-concept. Input is ONLY the poster style/composition reference. Create a NEW single isolated cinematic monster illustration for the RIGHT HALF of this game opening; the creature enters from the right and looks inward toward the child on the left. Subject: '+subject+' '+style+' Entire creature/essential wings and effects inside a 1536x1024 frame with at least 50px safety margin. Strong diagonals, huge expressive head, rich anatomical detail, dramatic scale and impact. NO CHILD, no city, no background painting, no text. Pure exact uniform #FF00FF background around silhouette and between limbs. Keep sweeping ink edges connected to monster, no rectangular backdrop. Do not copy the reference moth when drawing a different species.'
-for name,prompt in prompts.items(): (root/f'{name}-prompt.txt').write_text(prompt,encoding='utf-8')
+for name,prompt in prompts.items(): (root/f'{name}-prompt.txt').write_text(prompt.strip()+'\n',encoding='utf-8')
 print('Prepared portraits, opening heroes/background and seven monster portraits.')
