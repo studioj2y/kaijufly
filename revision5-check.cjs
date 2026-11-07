@@ -14,7 +14,7 @@ const assert=require('assert/strict'),fs=require('fs');
  assert.equal(await page.evaluate(()=>window.__KAIJU__.S.phase),'intro');
  // Inspect the actual draw calls: scene alone, left entrant, then right entrant.
  const positions=[];
- for(const t of [0,.9,1.6,2.7]){
+ for(const t of [0,1.3,2.0,3.5]){
   positions.push(await page.evaluate(t=>{
    const g=window.__KAIJU__,c=document.getElementById('cv').getContext('2d'),draw=c.drawImage,log=[];
    g.S.introT=t;g.S.openingMonster='moth';
@@ -25,7 +25,7 @@ const assert=require('assert/strict'),fs=require('fs');
  }
  const first=positions[0];assert.ok(first.find(x=>x.src==='opening-hero-boy.png').x+first.find(x=>x.src==='opening-hero-boy.png').w<0);
  assert.ok(first.find(x=>x.src==='opening-moth.png').x>1440);
- await page.evaluate(()=>{const g=window.__KAIJU__;g.S.introT=2.79;g.step(.02);});
+ await page.evaluate(()=>{const g=window.__KAIJU__;g.S.introT=3.79;g.step(.02);});
  assert.equal(await page.evaluate(()=>window.__KAIJU__.S.phase),'menu');
  await page.screenshot({path:'art_prototypes/revision5/qa-menu.png'});
  const roster=await page.evaluate(()=>window.kaijuScene.monsters);

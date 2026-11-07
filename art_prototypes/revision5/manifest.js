@@ -1,1 +1,1 @@
-window.kaijuSceneAssets = {"groundRatios": {"canvas": 0.97639, "anguirus": 1.73016, "sand": 2.0, "tower": 0.38784, "ultraman": 0.94457, "water": 2.27041, "dolly": 0.95541, "chair": 1.00257}};
+window.kaijuSceneAssets = {"groundRatios": {"canvas": 0.97639, "anguirus": 1.73016, "sand": 2.0, "tower": 0.38784, "ultraman": 0.94457, "water": 2.27041, "dolly": 0.95541, "chair": 1.00257}, "groundAnchors": {"oilrig": [0.9375, 0.9375, 0.9375, 0.939453125, 0.865234375, 0.865234375, 0.865234375]}};

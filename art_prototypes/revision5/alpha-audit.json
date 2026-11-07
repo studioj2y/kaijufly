@@ -1105,6 +1105,20 @@
     ],
     "transparent_rgb": 0
   },
+  "portrait-natural-boy.png": {
+    "size": [
+      688,
+      996
+    ],
+    "transparent_rgb": 0
+  },
+  "portrait-natural-girl.png": {
+    "size": [
+      614,
+      964
+    ],
+    "transparent_rgb": 0
+  },
   "opening-hero-boy.png": {
     "size": [
       1277,

@@ -812,7 +812,7 @@
     switch (S.phase) {
       case 'intro':
         if (window.kaijuScene.openingReady(S)) S.introT += dt;
-        if (S.introT >= 2.8) showMenu();
+        if (S.introT >= window.kaijuScene.openingTiming.menuAt) showMenu();
         break;
       case 'aim':
         S.aimT += dt; S.angle = 12 + 66 * tri(S.aimT * 0.85); updateHUD(); break;
@@ -993,7 +993,7 @@
     S.introT = 0; S.phase = 'intro'; S.frozen = false; S.holding = false;
     ['menu', 'characterSelect', 'result', 'paper', 'hud', 'mug'].forEach(id => $(id).classList.add('hidden'));
     $('skipOpening').classList.remove('hidden');
-    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) showMenu();
+    // Always show the requested three-stage entrance. Skipping is explicit.
   }
   function showCharacterSelect() {
     S.phase = 'character'; S.holding = false;
@@ -1024,6 +1024,7 @@
     window.addEventListener('keydown', (e) => {
       if (S.phase === 'character') return;
       if (S.phase === 'intro') {
+        if (e.repeat) return;
         if ([' ', 'Enter', 'Escape'].includes(e.key)) { e.preventDefault(); showMenu(); }
         return;
       }
@@ -1422,7 +1423,9 @@
           const dw = airArt.width * scale, dh = airArt.height * scale;
           ctx.save();
           const rooted = ['oilrig', 'gillas'].includes(artName);
-          ctx.translate(sx + (rooted ? 0 : Math.sin(S.t * 1.4 + e.ph) * 3), rooted ? wy(0) - dh / 2 : sy + Math.sin(S.t * 2 + e.ph) * 4);
+          const foot = window.kaijuArt.groundAnchor(artName, S.t + e.ph);
+          const rootY = wy(0) + (artName === 'oilrig' ? 3 : 0) + dh * (.5 - foot);
+          ctx.translate(sx + (rooted ? 0 : Math.sin(S.t * 1.4 + e.ph) * 3), rooted ? rootY : sy + Math.sin(S.t * 2 + e.ph) * 4);
           if (!rooted) ctx.rotate(Math.sin(S.t * 1.7 + e.ph) * 0.025);
           ctx.drawImage(airArt, -dw / 2, -dh / 2, dw, dh);
           ctx.restore();

@@ -90,6 +90,7 @@
     ctx.restore();return ready;
   }
   const monsters = ['moth', 'rodan', 'gamera', 'godzilla', 'gillas', 'ghidorah', 'anguirus'];
+  const openingTiming = { heroStart: .75, heroDuration: 1.1, monsterStart: 2.15, monsterDuration: 1.15, menuAt: 3.8 };
   const names = { moth: '摩斯拉', rodan: '拉顿', gamera: '加美拉', godzilla: '哥斯拉', gillas: '吉拉斯兄弟', ghidorah: '王者基多拉', anguirus: '安吉拉斯' };
   function openingReady(state) {
     const art = window.kaijuArt;
@@ -104,7 +105,7 @@
       ctx.drawImage(bg, (W - bg.width * scale) / 2, (H - bg.height * scale) / 2, bg.width * scale, bg.height * scale);
     }
     if (state.phase === 'character') return;
-    const ready = openingReady(state), time = state.phase === 'intro' ? state.introT || 0 : 3;
+    const ready = openingReady(state), time = state.phase === 'intro' ? state.introT || 0 : openingTiming.menuAt;
     if (ready) {
       const portrait = W / H < 1.1;
       function layer(image, left, top, maxW, maxH, shift) {
@@ -115,8 +116,8 @@
       const creature = art.get('opening-' + state.openingMonster);
       const hero = art.get('opening-hero-' + state.character);
       // Monsters are behind the foreground child, as in the supplied poster.
-      layer(creature, W * (portrait ? .16 : .38), H * .06, W * (portrait ? .90 : .68), H * (portrait ? .52 : .78), W * 1.2 * (1 - ease((time - 1.15) / 1.05)));
-      layer(hero, W * (portrait ? -.10 : -.045), H * (portrait ? .26 : .27), W * (portrait ? .78 : .55), H * (portrait ? .38 : .66), -W * 1.15 * (1 - ease((time - .6) / 1.0)));
+      layer(creature, W * (portrait ? .16 : .38), H * .06, W * (portrait ? .90 : .68), H * (portrait ? .52 : .78), W * 1.2 * (1 - ease((time - openingTiming.monsterStart) / openingTiming.monsterDuration)));
+      layer(hero, W * (portrait ? -.10 : -.045), H * (portrait ? .26 : .27), W * (portrait ? .78 : .55), H * (portrait ? .38 : .66), -W * 1.15 * (1 - ease((time - openingTiming.heroStart) / openingTiming.heroDuration)));
     }
     ctx.save();
     ctx.fillStyle = '#242b2c';ctx.textAlign = 'left';ctx.font = '900 ' + Math.min(38, W * .052) + 'px Georgia, serif';
@@ -124,7 +125,7 @@
     ctx.fillText('KAIJU FLY', W * .045, H * .097);
     ctx.font = 'bold ' + Math.min(14, W * .025) + 'px sans-serif';
     ctx.fillText('怪兽飞天 · 特摄片场大冒险', W * .047, H * .13);
-    if (time > 2.3) {
+    if (time > openingTiming.monsterStart + openingTiming.monsterDuration) {
       ctx.textAlign = 'right';ctx.font = 'bold ' + Math.min(24, W * .045) + 'px sans-serif';
       ctx.fillText(names[state.openingMonster] + ' · 本日登场', W * .955, H * .095);
     }
@@ -134,5 +135,5 @@
     }
     ctx.restore();
   }
-  window.kaijuScene = { background, floor, tileIndex, endingIndex, endingReady, drawEnding, endingOverlay, opening, openingReady, monsters };
+  window.kaijuScene = { background, floor, tileIndex, endingIndex, endingReady, drawEnding, endingOverlay, opening, openingReady, openingTiming, monsters };
 })();

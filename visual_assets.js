@@ -94,6 +94,10 @@
   window.kaijuArt = {
     character: 'boy',
     prioritize(names) { prioritize(names); },
+    groundAnchor(name, time) {
+      const frames = window.kaijuSceneAssets?.groundAnchors?.[name];
+      return frames ? frames[Math.floor(Math.max(0, time) * 7) % 7] : 1;
+    },
     setCharacter(character) { this.character = character === 'girl' ? 'girl' : 'boy'; },
     grip(name, time) {
       // Fixed anchors exported by revision3/build.py after talon registration.

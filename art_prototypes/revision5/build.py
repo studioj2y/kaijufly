@@ -114,7 +114,7 @@ for stage in ('day','sunset','night','moon'):
         tile=Image.new('RGBA',(layer.width*2,layer.height));tile.paste(layer,(0,0));tile.paste(layer.transpose(Image.Transpose.FLIP_LEFT_RIGHT),(layer.width,0))
         save(tile,f'parallax-{stage}-{i}.png',(2048,512))
 
-for name,prefix in [('portraits','portrait'),('opening-heroes','opening-hero')]:
+for name,prefix in [('portraits','portrait'),('portraits-natural','portrait-natural'),('opening-heroes','opening-hero')]:
     path=root/f'{name}-source.png'
     if path.exists():
         source=Image.open(path)
@@ -139,6 +139,10 @@ for frame in range(7):
     preview.append(page.convert('RGB'))
 preview[0].save(root/'endings-preview.gif',save_all=True,append_images=preview[1:],duration=[180,150,150,150,150,150,1300],loop=0,disposal=2)
 preview[-1].save(root/'endings-preview.png')
-(root/'manifest.js').write_text('window.kaijuSceneAssets = '+json.dumps({'groundRatios':ratios})+';\n',encoding='utf-8')
+feet=[]
+for i in range(7):
+    alpha=np.array(Image.open(root/f'oilrig-frame-{i}.png'))[:,:,3]
+    feet.append(float((np.where(alpha>150)[0].max()+1)/alpha.shape[0]))
+(root/'manifest.js').write_text('window.kaijuSceneAssets = '+json.dumps({'groundRatios':ratios,'groundAnchors':{'oilrig':feet}})+';\n',encoding='utf-8')
 (root/'alpha-audit.json').write_text(json.dumps(audit,indent=2),encoding='utf-8')
 print(f'Exported and verified {len(audit)} RGBA images. Ground ratios: {ratios}')
