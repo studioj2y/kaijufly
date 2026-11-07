@@ -60,6 +60,7 @@
           ③ 出炮后 <b>按住不放</b>：小朋友像小鸟一样拼命挥舞手臂爬升微调，<b>消耗体力</b>；松开进入轻盈滑翔。飞得过陡会失速！<br>
           <b>R</b> 重新发射　<b>Esc</b> 返回片场大门
         </div>
+        <div class="btns"><button id="openWorkshop">片场工坊 · 解锁与配置</button></div>
         <div class="legend">
           拉顿超音速顺风车 · 摩斯拉鳞粉治愈充能 · 哥斯拉软胶大肚皮弹跳 · 防卫队战机掠过推力 · 基拉斯兄弟旋转飓风 · 特斯拉人工放电 · 8种爆笑见学收场纪念照
         </div>
@@ -77,7 +78,10 @@
           <div><span>BEST DISTANCE</span><b id="resBest">0</b><span>米</span></div>
         </div>
         <p id="resNote"></p>
+        <p class="reward">最高总分 <b id="resBestScore">0</b> · 距离与特技合计</p>
+        <p id="runReward" class="reward"></p>
         <div class="btns">
+          <button id="resultWorkshop">解锁与配置</button>
           <button id="again">再发射一次！</button>
           <button id="nextMission" class="hidden">下一部通告</button>
           <button id="backMenu">返回片场大门</button>
@@ -100,10 +104,21 @@
           <canvas id="paperPic" width="500" height="360"></canvas>
           <div class="paper-text" id="paperText"></div>
         </div>
+        <p id="paperReward" class="reward"></p>
         <div class="btns">
           <button id="paperNext">进入下一场拍摄</button>
           <button id="paperMenu">返回片场大门</button>
         </div>
+      </div>
+    </div>
+    <div id="workshop" class="panel hidden">
+      <div class="card workshop-card">
+        <div class="clapper-stripe"></div>
+        <h2>片场工坊</h2>
+        <p class="workshop-intro">完成飞行赚取片场点数，永久解锁三级能力。已解锁档位可自由选择或关闭，下一次起飞生效。</p>
+        <p class="reward">可用点数 <b id="workshopPoints">0</b> · 已完成 <b id="workshopRuns">0</b> 次飞行</p>
+        <div id="upgradeList"></div>
+        <div class="btns"><button id="closeWorkshop">返回</button></div>
       </div>
     </div>
   </div>
@@ -117,6 +132,7 @@
 <script src="landings.js"></script>
 <script src="entities.js"></script>
 <script src="visual_assets.js"></script>
+<script src="progression.js"></script>
 <script src="game.js"></script>
 </body>
 </html>

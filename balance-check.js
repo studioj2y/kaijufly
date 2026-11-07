@@ -4,7 +4,7 @@ const vm = require('vm');
 
 const source = fs.readFileSync(__dirname + '/game.js', 'utf8');
 
-function run(seed, strategy) {
+function createGame(seed, rank = 0) {
   let value = seed >>> 0;
   const math = Object.create(Math);
   math.random = () => {
@@ -39,8 +39,18 @@ function run(seed, strategy) {
     location: { search: '' }, requestAnimationFrame() {},
     localStorage: { getItem() { return null; }, setItem() {} }
   };
+  vm.runInNewContext(fs.readFileSync(__dirname + '/progression.js', 'utf8'), context);
+  for (const item of window.kaijuProgress.catalog) {
+    window.kaijuProgress.data.owned[item.id] = rank;
+    window.kaijuProgress.data.equipped[item.id] = rank;
+  }
   vm.runInNewContext(source, context, { filename: 'game.js' });
   const game = window.__KAIJU__;
+  return { game, progress: window.kaijuProgress, nodes };
+}
+
+function run(seed, strategy, rank = Number(process.env.RANK || 0)) {
+  const { game } = createGame(seed, rank);
   game.startGame('distance', 0);
   game.S.angle = 42;
   game.S.power = 65;
@@ -66,8 +76,9 @@ function run(seed, strategy) {
   };
 }
 
-for (const seed of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]) {
+if (require.main === module) for (const seed of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]) {
   console.log(JSON.stringify(run(seed, 'none')));
   console.log(JSON.stringify(run(seed, 'hold')));
   console.log(JSON.stringify(run(seed, 'low-altitude')));
 }
+module.exports = { createGame, run };

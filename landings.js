@@ -426,7 +426,70 @@ function drawGroundTokusatsuObj(ctx, type, px, wy0, sx) {
 }
 
 // 绘制见学纪念拍立得照片 (用于主游戏画面中的定格特写与报纸插图)
+function drawArtLandingVignette(ctx, type, Wd, Hd) {
+  const art = window.kaijuArt;
+  const prop = art && art.get(type);
+  const pilot = art && (art.get('pilotDive') || art.get('pilot'));
+  if (!prop || !pilot) return false;
+
+  ctx.save();
+  if (Wd < 400) {
+    // The brief in-world impact is kept small; the full image appears on paper.
+    const w = 110, h = w * pilot.height / pilot.width;
+    ctx.translate(-8, -82);
+    ctx.rotate(0.35);
+    ctx.drawImage(pilot, -w * 0.5, -h * 0.5, w, h);
+    ctx.restore();
+    return true;
+  }
+
+  ctx.clearRect(0, 0, Wd, Hd);
+  const city = art.get('city');
+  if (city) ctx.drawImage(city, 0, 0, Wd, Hd);
+  else { ctx.fillStyle = '#a6aeb0'; ctx.fillRect(0, 0, Wd, Hd); }
+  ctx.fillStyle = 'rgba(231, 218, 190, 0.22)';
+  ctx.fillRect(0, 0, Wd, Hd);
+  const groundY = Hd * 0.83;
+  const shade = ctx.createLinearGradient(0, groundY, 0, Hd);
+  shade.addColorStop(0, '#4b5351');
+  shade.addColorStop(1, '#222d32');
+  ctx.fillStyle = shade;
+  ctx.fillRect(0, groundY, Wd, Hd - groundY);
+  ctx.fillStyle = '#c59a62';
+  ctx.fillRect(0, groundY, Wd, 4);
+
+  const propScale = Math.min(205 / prop.width, 205 / prop.height);
+  const propW = prop.width * propScale, propH = prop.height * propScale;
+  const propX = type === 'canvas' ? Wd * 0.62 : Wd * 0.66;
+  ctx.drawImage(prop, propX - propW / 2, groundY - propH, propW, propH);
+
+  const w = type === 'tower' ? 175 : 205;
+  const h = w * pilot.height / pilot.width;
+  const angles = { anguirus: 0.28, canvas: 0.05, sand: 0.8, tower: 0.4, ultraman: -0.1, water: 0.38, dolly: 0.12, chair: 0.62 };
+  const px = Wd * 0.37, py = type === 'sand' ? groundY - 39 : groundY - 96;
+  ctx.translate(px, py);
+  ctx.rotate(angles[type] || 0);
+  ctx.drawImage(pilot, -w * 0.5, -h * 0.5, w, h);
+  ctx.restore();
+
+  ctx.save();
+  ctx.strokeStyle = 'rgba(31, 37, 40, 0.68)';
+  ctx.lineWidth = 2;
+  for (let i = 0; i < 4; i++) {
+    ctx.beginPath();
+    ctx.moveTo(28, 107 + i * 21);
+    ctx.lineTo(110 + i * 7, 100 + i * 21);
+    ctx.stroke();
+  }
+  ctx.strokeStyle = '#2a3030';
+  ctx.lineWidth = 5;
+  ctx.strokeRect(2.5, 2.5, Wd - 5, Hd - 5);
+  ctx.restore();
+  return true;
+}
+
 function drawTokusatsuLandingVignette(ctx, type, cx, cy, scale, t, Wd, Hd) {
+  if (drawArtLandingVignette(ctx, type, Wd, Hd)) return;
   ctx.save();
   ctx.clearRect(0, 0, Wd, Hd);
 

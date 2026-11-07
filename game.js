@@ -9,10 +9,14 @@
   const cv = $('cv'), ctx = cv.getContext('2d');
   let W = 0, H = 0, DPR = 1;
 
-  const PPM = 10; // 1米 = 10像素
+  let PPM = 12.5; // Closer framing; gameplay distances remain in world metres.
   // 核心动力学微调：大幅降低恶性空气阻力衰减，优化俯仰升力与体力消耗
   const G = 13.6, LIFT = 31, VDRAG = 0.50, DRAG = 0.052, DRAIN = 17.5;
   const CHUNK = 160;
+  const STAGE_STARTS = [0, 1800, 3750, 6300];
+  const progress = window.kaijuProgress;
+  const level = id => (S.loadout && S.loadout[id]) || 0;
+  const maxEnergy = () => 65 + level('stamina') * 15;
 
   // 空中特摄道具池 (包含拉顿、摩斯拉、基拉斯旋转等)
   const AIR_TYPES = [
@@ -83,22 +87,27 @@
     },
     {
       target: 5000, desc: '飞过 5000 米，挑战月面片场',
-      head: '冲破五千米！月面片场也留下飞行轨迹！',
+      head: '冲破七千五百米！月面片场留下飞行轨迹！',
       sub: '一次次选择扑腾和俯冲，终于把旅程延伸到了最终幕'
     },
     {
       target: 7000, desc: '飞过 7000 米，刷新片场纪录',
-      head: '七千米新纪录！片场全员仰望天空！',
+      head: '一万零五百米新纪录！片场全员仰望天空！',
       sub: '随机出现的布景与道具，让这次纪录有了独一无二的故事'
     },
     {
       target: 10000, desc: '飞过 10000 米，完成万米远征',
-      head: '万米远征达成！传奇镜头写进片场史！',
+      head: '一万五千米远征达成！传奇镜头写进片场史！',
       sub: '穿过四幕布景之后，仍然愿意再飞一次的勇气才是终极特技'
     }
   ];
 
   // 全局游戏状态
+  TOKUSATSU_MISSIONS.forEach(m => {
+    const previous = m.target;
+    m.target = Math.round(previous * 1.5);
+    m.desc = m.desc.replace(String(previous), String(m.target));
+  });
   const S = {
     phase: 'menu', mode: 'distance', t: 0, frame: 0, angle: 45, power: 60, aimT: 0, powerT: 0,
     j: { x: 0, y: 0, vx: 0, vy: 0, energy: 100, arm: 0 },
@@ -127,6 +136,7 @@
     DPR = Math.min(2, window.devicePixelRatio || 1);
     W = window.innerWidth;
     H = window.innerHeight;
+    PPM = W < 600 ? 8.5 : 12.5;
     cv.width = Math.round(W * DPR);
     cv.height = Math.round(H * DPR);
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
@@ -137,6 +147,7 @@
   function wy(y) { return gy() - (y - S.camY) * PPM; }
 
   function saveBest() {
+    if (S.testMode) return;
     try { localStorage.setItem('kaijufly_best', JSON.stringify(S.best)); } catch (e) {}
   }
   function loadBest() {
@@ -211,7 +222,7 @@
 
   function genChunk(start) {
     const r = rnd32(S.seed + Math.floor(start / CHUNK) * 7919 + 13);
-    const dist = start;
+    const dist = start / 1.5;
 
     // 稀疏但持续的互动；飞得更远不应自动获得更密集的续命道具。
     let airN = 1 + Math.floor(r() * 2);
@@ -228,6 +239,8 @@
       facN = r() < 0.35 ? 1 : 0;
     }
 
+    const extra = airN * level('density') * 0.2;
+    airN += Math.floor(extra) + (r() < extra % 1 ? 1 : 0);
     // 生成空中道具
     for (let i = 0; i < airN; i++) {
       let t;
@@ -281,6 +294,8 @@
 
   // ---------------- 粒子与弹幕提示 ----------------
   function puff(x, y, n, color, spd) {
+    const inkColors = { '#ffffff': '#e9dfc8', '#ffd43b': '#d1b276', '#fcc419': '#d1b276', '#ff6b6b': '#b96346', '#e8590c': '#b96346', '#69db7c': '#839281', '#339af0': '#75a6b5', '#74c0fc': '#75a6b5', '#22b8cf': '#75a6b5', '#4dabf7': '#75a6b5' };
+    color = inkColors[color] || '#b4a38a';
     for (let i = 0; i < n; i++) {
       const a = Math.random() * 6.28, v = spd || 8;
       S.particles.push({
@@ -312,6 +327,7 @@
 
   // ---------------- 游戏流程管理 ----------------
   function showMenu() {
+    $('workshop').classList.add('hidden');
     S.phase = 'menu'; S.holding = false; S.frozen = false;
     $('menu').classList.remove('hidden');
     $('result').classList.add('hidden');
@@ -324,12 +340,15 @@
   }
 
   function startGame(mode, missionIdx) {
+    S.loadout = progress ? progress.snapshot() : {};
+    S.rewarded = false;
+    $('workshop').classList.add('hidden');
     S.mode = mode;
     S.missionIdx = missionIdx || 0;
     S.mission = mode === 'career' ? TOKUSATSU_MISSIONS[S.missionIdx % TOKUSATSU_MISSIONS.length] : null;
     S.phase = 'aim';
     S.aimT = 0; S.powerT = 0; S.t = 0;
-    S.j = { x: 0, y: 0, vx: 0, vy: 0, energy: 100, arm: 0 };
+    S.j = { x: 0, y: 0, vx: 0, vy: 0, energy: maxEnergy(), arm: 0 };
     S.holding = false; S.dist = 0; S.bonus = 0; S.combo = 0; S.comboTimer = 0; S.events = {}; S.stage = 1; S.skids = 0;
     S.camX = 0; S.camY = 0; S.shake = 0; S.flash = 0; S.skeleton = 0; S.stun = 0; S.spin = 0;
     S.carried = 0; S.carryType = null;
@@ -358,7 +377,7 @@
     const a = S.angle * Math.PI / 180, v0 = 42 + S.power * 0.58;
     S.j.vx = v0 * Math.cos(a);
     S.j.vy = v0 * Math.sin(a);
-    S.j.x = 0; S.j.y = 2; S.j.energy = 100;
+    S.j.x = 0; S.j.y = 2; S.j.energy = maxEnergy();
     S.phase = 'flying'; S.holding = false; S.shake = 10; S.flash = 0.25;
 
     puff(0, 3, 28, '#ffd43b', 16);
@@ -370,8 +389,9 @@
   function addStunt(k, pts) {
     S.events[k] = (S.events[k] || 0) + 1;
     S.combo++; S.comboTimer = 3.2;
-    S.bonus += pts * S.combo;
-    toast(STUNT_LABEL[k] + ' +' + (pts * S.combo));
+    const awardedScore = Math.round(pts * S.combo * (1 + level('combo') * 0.15));
+    S.bonus += awardedScore;
+    toast(STUNT_LABEL[k] + ' +' + awardedScore);
     mug('^o^', STUNT_MUG[k] || '特技镜头太帅啦！');
     updateHUD();
   }
@@ -384,7 +404,7 @@
     switch (type) {
       case 'cloud':
         // 特斯拉人工电离云：全身触电火花 + 瞬间充能 + 骨骼透视
-        j.energy = Math.min(100, j.energy + 50);
+        j.energy = Math.min(maxEnergy(), j.energy + 50);
         j.vy += 22; j.vx *= 0.9;
         S.stun = 0.35; S.skeleton = 1.15; S.flash = 0.65; S.shake = 12;
         puff(e.x, e.y, 34, '#74c0fc', 20);
@@ -405,7 +425,7 @@
         // 摩斯拉！神圣风铃与金粉治愈！向上温柔翱翔 + 体力狂涨满血！
         S.carried = 2.6; S.carryType = 'mothra'; S.carryY = Math.max(j.y, e.y) + 8;
         j.vx = 52; j.vy = 12;
-        j.energy = Math.min(100, j.energy + 60);
+        j.energy = Math.min(maxEnergy(), j.energy + 20 + level('moth') * 15);
         puff(e.x, e.y, 30, '#ffd43b', 12);
         window.kaijuAudio.play('mothra');
         addStunt('mothra', 180);
@@ -445,7 +465,7 @@
 
       case 'chili':
         // 假面骑士推进糖果！身后喷彩烟加速
-        j.energy = Math.min(100, j.energy + 28);
+        j.energy = Math.min(maxEnergy(), j.energy + 28);
         j.vx += 18; S.flash = 0.15;
         puff(e.x, e.y, 16, '#ff6b6b', 12);
         window.kaijuAudio.play('pickup');
@@ -454,7 +474,7 @@
 
       case 'can':
         // M87 剧组能量便当/果汁补充
-        j.energy = Math.min(100, j.energy + 45);
+        j.energy = Math.min(maxEnergy(), j.energy + 45);
         puff(e.x, e.y, 16, '#22b8cf', 10);
         window.kaijuAudio.play('pickup');
         addStunt('can', 70);
@@ -521,7 +541,7 @@
 
       case 'bento':
         // 剧组高级便当与能量果汁长桌！体力大回复 + 小幅弹跳！
-        j.energy = Math.min(100, j.energy + 45);
+        j.energy = Math.min(maxEnergy(), j.energy + 45);
         j.vy = Math.max(j.vy, 18);
         j.vx = Math.max(j.vx + 12, 34);
         puff(g.x, 2, 22, '#ffd43b', 10);
@@ -560,9 +580,9 @@
   function checkStageTransition() {
     const x = S.j.x;
     let newStage = 1;
-    if (x >= 4200) newStage = 4;
-    else if (x >= 2500) newStage = 3;
-    else if (x >= 1200) newStage = 2;
+    if (x >= STAGE_STARTS[3]) newStage = 4;
+    else if (x >= STAGE_STARTS[2]) newStage = 3;
+    else if (x >= STAGE_STARTS[1]) newStage = 2;
 
     if (newStage !== S.stage) {
       S.stage = newStage;
@@ -630,6 +650,14 @@
     const dist = Math.round(S.dist);
     const L = window.TOKUSATSU_LANDINGS[S.landingType] || window.TOKUSATSU_LANDINGS['sand'];
     const score = dist + S.bonus + L.bonus;
+    if (!S.rewarded && progress && !S.testMode) {
+      const count = Object.values(S.events).reduce((a, b) => a + b, 0);
+      const reward = progress.award(dist, count, S.missionOk);
+      S.rewarded = true;
+      const message = '本次获得 ' + reward.points + ' 片场点数 · 可用 ' + progress.data.points + (reward.saved ? '' : '（浏览器未能保存，请勿关闭页面）');
+      $('runReward').textContent = message;
+      $('paperReward').textContent = message;
+    }
 
     if (dist > S.best.dist) S.best.dist = dist;
     if (score > S.best.score) S.best.score = score;
@@ -648,6 +676,7 @@
     $('resDist').textContent = dist;
     $('resScore').textContent = score;
     $('resBest').textContent = S.best.dist;
+    $('resBestScore').textContent = S.best.score;
     $('resNote').textContent = ok
       ? '收场方式：' + L.name + ' · ' + L.note + ' · 途中完成 ' + Object.values(S.events).reduce((a, b) => a + b, 0) + ' 次特摄互动！'
       : '本次飞到 ' + dist + ' 米，距离 ' + S.mission.target + ' 米目标还差 ' + Math.max(0, S.mission.target - dist) + ' 米。再拍一发！';
@@ -680,7 +709,7 @@
 
   function updateHUD() {
     const e = $('energyFill');
-    e.style.width = clamp(S.j.energy, 0, 100) + '%';
+    e.style.width = clamp(S.j.energy / maxEnergy() * 100, 0, 100) + '%';
     e.classList.toggle('low', S.j.energy < 28);
     $('distVal').textContent = Math.round(S.dist);
     $('comboVal').textContent = S.combo;
@@ -750,14 +779,14 @@
         j.x += 84 * dt;
         j.y = S.carryY + Math.sin(S.t * 8) * 0.5;
         j.vx = 84; j.vy = 0;
-        j.energy = Math.min(100, j.energy + 12 * dt);
+        // Carrying preserves energy but is not an unlimited recharge.
         j.arm += dt * 6;
       } else if (S.carryType === 'mothra') {
         // 摩斯拉：温柔向上翱翔，神圣鳞粉使体力急速回满！
         j.x += 54 * dt;
         j.y = S.carryY + Math.sin(S.t * 5) * 1.2;
         j.vx = 54; j.vy = 6;
-        j.energy = Math.min(100, j.energy + 38 * dt); // 摩斯拉特有：强力充能！
+        // Mothra's finite heal is applied once, when contact begins.
         j.arm += dt * 4;
         // 洒落金粉粒子
         if (Math.random() < dt * 25) {
@@ -766,12 +795,13 @@
       }
 
       if (S.carried <= 0) {
-        j.vy = 4; j.vx *= 0.94;
-        toast(S.carryType === 'rodan' ? '拉顿松爪！顺风滑翔！' : '摩斯拉温柔松爪！体力满格！');
+        j.vy = S.carryType === 'rodan' && level('toss') ? 7 + level('toss') * 7 : 4;
+        j.vx *= 0.94;
+        toast(S.carryType === 'rodan' ? (level('toss') ? '拉顿斜上方抛出！' : '拉顿松爪！顺风滑翔！') : '摩斯拉松爪！鳞粉补给完成！');
       }
     } else {
       // 当前阶段重力：太空月面基地阶段 (4200m+) 具有略微低重力，带来轻盈的漂浮感
-      const curG = S.j.x >= 4200 ? 9.6 : G;
+      const curG = S.j.x >= STAGE_STARTS[3] ? 9.6 : G;
 
       // 玩家长按：双手扑腾扑腾爬升！
       const flap = S.holding && j.energy > 0 && S.stun <= 0;
@@ -783,7 +813,7 @@
       j.vy += ay * dt;
 
       if (flap) {
-        j.energy = Math.max(0, j.energy - DRAIN * dt);
+        j.energy = Math.max(0, j.energy - DRAIN * (1 - level('efficiency') * 0.08) * dt);
         // ★ 核心手感优化：扑腾不仅抬升，更产生前向推力！挣扎能真正改变结果！
         j.vx += 8.5 * dt;
         j.arm += dt * 15;
@@ -822,8 +852,8 @@
 
     if (j.y < 0) j.y = 0;
     S.dist = Math.max(S.dist, j.x);
-    S.camX = Math.max(0, j.x - W * 0.28 / PPM);
-    const targetCamY = Math.max(0, j.y - 32) * 0.72;
+    S.camX = Math.max(0, j.x);
+    const targetCamY = Math.max(0, j.y - H * 0.48 / PPM);
     S.camY += (targetCamY - S.camY) * Math.min(1, dt * 3);
 
     ensureWorld();
@@ -838,7 +868,7 @@
       // 触地判定：先看是否触发了地面设施 (弹簧蹦床/纸板大厦/原子喷口等)
       if (!checkGroundFacilities()) {
         // 高速触地最多借力两次，避免低速滑跳无限续命。
-        if (j.vx >= 22 && S.skids < 2) {
+        if (j.vx >= 22 && S.skids < level('skid')) {
           S.skids++;
           j.y = 0.5;
           j.vy = Math.max(13.5, Math.abs(j.vy) * 0.52 + 6.5);
@@ -881,9 +911,33 @@
     S.holding = false;
   }
 
+  let workshopReturn = 'menu';
+  function renderWorkshop() {
+    if (!progress) return;
+    $('workshopPoints').textContent = progress.data.points;
+    $('workshopRuns').textContent = progress.data.runs;
+    $('upgradeList').innerHTML = progress.catalog.map(item => {
+      const owned = progress.data.owned[item.id] || 0, active = progress.data.equipped[item.id] || 0;
+      const options = Array.from({ length: owned + 1 }, (_, n) => '<option value="' + n + '"' + (active === n ? ' selected' : '') + '>' + (n ? '等级 ' + n : '关闭 / 基础') + '</option>').join('');
+      return '<div class="upgrade"><div><h3>' + item.name + ' <small>' + owned + '/3</small></h3><p>' + item.detail[active] + '</p><p class="upgrade-next">' + (owned < 3 ? '下一级：' + item.detail[owned + 1] : '已全部解锁') + '</p></div><div class="upgrade-actions"><label>使用档位 <select aria-label="' + item.name + '使用档位" data-equip="' + item.id + '">' + options + '</select></label><button data-buy="' + item.id + '"' + (owned >= 3 || progress.data.points < item.costs[owned] ? ' disabled' : '') + '>' + (owned >= 3 ? '已满级' : '解锁 · ' + item.costs[owned] + ' 点') + '</button></div></div>';
+    }).join('');
+  }
+  function openWorkshop() {
+    workshopReturn = S.phase;
+    S.phase = 'workshop'; S.holding = false;
+    renderWorkshop(); $('workshop').classList.remove('hidden');
+  }
+  function closeWorkshop() {
+    $('workshop').classList.add('hidden'); S.phase = workshopReturn;
+  }
+
   function bind() {
     window.addEventListener('resize', resize);
     window.addEventListener('keydown', (e) => {
+      if (S.phase === 'workshop') {
+        if (e.key === 'Escape') closeWorkshop();
+        return;
+      }
       if (e.repeat) return;
       if (e.key === ' ' || e.key === '5' || e.key === 'Enter') {
         e.preventDefault();
@@ -914,6 +968,17 @@
     $('paperNext').addEventListener('click', (e) => { e.stopPropagation(); startGame('career', S.missionIdx + 1); });
     $('backMenu').addEventListener('click', (e) => { e.stopPropagation(); showMenu(); });
     $('paperMenu').addEventListener('click', (e) => { e.stopPropagation(); showMenu(); });
+    $('openWorkshop').addEventListener('click', openWorkshop);
+    $('resultWorkshop').addEventListener('click', openWorkshop);
+    $('closeWorkshop').addEventListener('click', closeWorkshop);
+    $('upgradeList').addEventListener('click', e => {
+      const id = e.target.dataset.buy;
+      if (id && progress.buy(id)) renderWorkshop();
+    });
+    $('upgradeList').addEventListener('change', e => {
+      const id = e.target.dataset.equip;
+      if (id) { progress.equip(id, Number(e.target.value)); renderWorkshop(); }
+    });
 
     $('soundBtn').addEventListener('click', (e) => {
       e.stopPropagation();
@@ -926,10 +991,11 @@
 
   // ---------------- 画面渲染 (特摄片场视差美学与阶段换幕) ----------------
   function drawArtSky() {
-    const art = window.kaijuArt && window.kaijuArt.get('city');
-    if (!art || S.stage !== 1) return false;
+    const keys = ['city', 'stage2', 'stage3', 'stage4'];
+    const art = window.kaijuArt && window.kaijuArt.get(keys[(S.stage || 1) - 1]);
+    if (!art) return false;
 
-    ctx.fillStyle = '#93aeb9';
+    ctx.fillStyle = ['#93aeb9', '#8c5b42', '#122231', '#171717'][(S.stage || 1) - 1];
     ctx.fillRect(0, 0, W, H);
     // A far skyline needs only a gentle pan across the first act. This avoids
     // a visible repeat seam while the finite stage-1 panorama is on screen.
@@ -937,7 +1003,7 @@
     const artW = art.width * scale, artH = art.height * scale;
     const scroll = Math.min(artW - W, (artW - W) * 0.5 + S.camX * PPM * 0.01);
     const shiftY = Math.min(H * 0.16, S.camY * PPM * 0.05);
-    ctx.drawImage(art, -scroll, shiftY - (artH - H) * 0.3, artW, artH);
+    ctx.drawImage(art, -scroll, Math.min(0, shiftY - (artH - H) * 0.3), artW, artH);
     return true;
   }
 
@@ -1088,36 +1154,34 @@
     const y = wy(0);
     const stage = S.stage || 1;
     // 片场地表颜色随阶段演化
-    let groundCol = '#2d3b41', borderCol = '#c79a66';
-    if (stage === 2) { groundCol = '#c07238'; borderCol = '#8c4815'; }
-    else if (stage === 3) { groundCol = '#343a40'; borderCol = '#212529'; }
-    else if (stage === 4) { groundCol = '#adb5bd'; borderCol = '#868e96'; }
-
-    if (stage === 1) {
-      const inkFloor = ctx.createLinearGradient(0, y, 0, H);
-      inkFloor.addColorStop(0, '#354951');
-      inkFloor.addColorStop(1, '#17232a');
-      groundCol = inkFloor;
-    }
+    const floorColors = [
+      ['#354951', '#17232a', '#c79a66'],
+      ['#514037', '#20252a', '#b98859'],
+      ['#263746', '#101922', '#7f93a0'],
+      ['#51504e', '#222327', '#b8a888']
+    ];
+    const palette = floorColors[stage - 1] || floorColors[0];
+    const inkFloor = ctx.createLinearGradient(0, y, 0, H);
+    inkFloor.addColorStop(0, palette[0]);
+    inkFloor.addColorStop(1, palette[1]);
+    const groundCol = inkFloor, borderCol = palette[2];
     ctx.fillStyle = groundCol;
     ctx.fillRect(0, y, W, H - y + 300);
     ctx.fillStyle = borderCol;
-    ctx.fillRect(0, y, W, stage === 1 ? 5 : 9);
+    ctx.fillRect(0, y, W, 5);
 
-    if (stage === 1) {
-      ctx.strokeStyle = 'rgba(216, 184, 135, 0.15)';
-      ctx.lineWidth = 1;
-      const hatch = (S.camX * PPM) % 36;
-      for (let x = -H - hatch; x < W + H; x += 36) {
-        ctx.beginPath();
-        ctx.moveTo(x, y + 6);
-        ctx.lineTo(x - (H - y) * 0.44, H);
-        ctx.stroke();
-      }
+    ctx.strokeStyle = 'rgba(216, 184, 135, 0.15)';
+    ctx.lineWidth = 1;
+    const hatch = (S.camX * PPM) % 36;
+    for (let x = -H - hatch; x < W + H; x += 36) {
+      ctx.beginPath();
+      ctx.moveTo(x, y + 6);
+      ctx.lineTo(x - (H - y) * 0.44, H);
+      ctx.stroke();
     }
 
     // 摄影机微缩双钢轨 (地面导轨)
-    ctx.strokeStyle = stage === 3 ? '#ffd43b' : '#868e96';
+    ctx.strokeStyle = stage === 3 ? '#a49c7e' : '#7f8889';
     ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.moveTo(0, y + 16);
@@ -1137,13 +1201,33 @@
     for (let i = 0; i < S.ground.length; i++) {
       const g = S.ground[i], sx = wx(g.x);
       if (sx > -160 && sx < W + 160) {
-        window.drawGroundTokusatsuObj(ctx, g.type, g.w * PPM, wy(0), sx);
+        const art = window.kaijuArt && window.kaijuArt.get(g.type);
+        if (art) {
+          const scale = Math.min(g.w * PPM / art.width, Math.min(230, H * 0.36) / art.height);
+          const dw = art.width * scale, dh = art.height * scale;
+          ctx.globalAlpha = g.hit ? 0.55 : 1;
+          ctx.drawImage(art, sx - dw / 2, y - dh, dw, dh);
+          ctx.globalAlpha = 1;
+        } else {
+          window.drawGroundTokusatsuObj(ctx, g.type, g.w * PPM, wy(0), sx);
+        }
       }
     }
   }
 
   function drawCannon() {
     const x = wx(0), y = wy(0);
+    const cannonArt = window.kaijuArt && window.kaijuArt.get('cannon');
+    if (cannonArt) {
+      const width = 160, height = width * cannonArt.height / cannonArt.width;
+      ctx.drawImage(cannonArt, x - width * 0.49, y - height + 13, width, height);
+      if (S.phase === 'power') {
+        ctx.fillStyle = 'rgba(233, 185, 96, ' + (0.18 + S.power / 300) + ')';
+        ctx.beginPath();
+        ctx.arc(x + 48, y - height * 0.72, 7 + S.power * 0.10, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } else {
     ctx.save();
     ctx.translate(x, y - 14);
 
@@ -1197,6 +1281,7 @@
     }
     ctx.restore();
     ctx.restore();
+    }
 
     // 虚线发射瞄准辅助线
     ctx.save();
@@ -1231,7 +1316,7 @@
     ctx.fill();
 
     const v = S.phase === 'aim' ? (S.angle - 12) / 66 : S.power / 100;
-    ctx.fillStyle = S.phase === 'aim' ? '#74c0fc' : '#ffd43b';
+    ctx.fillStyle = S.phase === 'aim' ? '#89a7ad' : '#d2b477';
     window.rr(ctx, x + 2, y + 2, Math.max(6, (w - 4) * v), 12, 6);
     ctx.fill();
 
@@ -1266,11 +1351,19 @@
       const e = S.air[i], sx = wx(e.x), sy = wy(e.y);
       if (sx > -200 && sx < W + 200 && sy > -300 && sy < H + 300) {
         ctx.globalAlpha = e.hit ? 0.3 : 1;
-        const mothArt = e.type === 'mothra' && window.kaijuArt && window.kaijuArt.get('moth');
-        if (mothArt) {
-          const width = e.w * PPM;
-          const height = width * mothArt.height / mothArt.width;
-          ctx.drawImage(mothArt, sx - width / 2, sy - height / 2 + Math.sin(S.t * 3 + e.ph) * 3, width, height);
+        const artName = e.type === 'mothra' ? 'moth' : e.type;
+        const airArt = window.kaijuArt && (['moth', 'rodan'].includes(artName) ? window.kaijuArt.frame(artName, S.t + e.ph) : window.kaijuArt.get(artName));
+        if (airArt) {
+          const wingRoom = ['moth', 'rodan'].includes(artName) ? 1.6 : 1;
+          const scale = Math.min(e.w * PPM / airArt.width, e.h * PPM * wingRoom / airArt.height);
+          const dw = airArt.width * scale, dh = airArt.height * scale;
+          ctx.save();
+          ctx.translate(sx + Math.sin(S.t * 1.4 + e.ph) * 3, sy + Math.sin(S.t * 2 + e.ph) * 4);
+          ctx.rotate(Math.sin(S.t * 1.7 + e.ph) * 0.025);
+          const beat = [0, 1, 0, -1][Math.floor((S.t + e.ph) * 4) % 4];
+          if (['cloud', 'oilrig', 'balloon', 'gillas'].includes(artName)) ctx.scale(1 + beat * 0.025, 1 - beat * 0.025);
+          ctx.drawImage(airArt, -dw / 2, -dh / 2, dw, dh);
+          ctx.restore();
         } else {
           window.drawTokusatsuAirEntity(ctx, e, sx, sy, PPM, S.t);
         }
@@ -1283,8 +1376,11 @@
       const p = S.particles[i];
       ctx.globalAlpha = clamp(p.life / p.max, 0, 1);
       ctx.fillStyle = p.color;
+      const px = wx(p.x), py = wy(p.y), size = p.size;
       ctx.beginPath();
-      ctx.arc(wx(p.x), wy(p.y), p.size, 0, Math.PI * 2);
+      ctx.moveTo(px - size, py); ctx.lineTo(px + size * 0.35, py - size * 0.55);
+      ctx.lineTo(px + size * 1.4, py + size * 0.2); ctx.lineTo(px, py + size * 0.6);
+      ctx.closePath();
       ctx.fill();
     }
     ctx.globalAlpha = 1;
@@ -1300,13 +1396,15 @@
         ctx.restore();
       } else {
         const rot = S.spin > 0 ? S.t * 14 : clamp(Math.atan2(-S.j.vy, Math.max(1, S.j.vx)) * 0.55, -0.6, 0.9);
-        const pilotArt = window.kaijuArt && window.kaijuArt.get('pilot');
+        const pilotPose = S.holding && S.j.energy > 0 ? 'pilotFlap' : S.j.vy < -8 ? 'pilotDive' : 'pilot';
+        const pilotArt = window.kaijuArt && (pilotPose === 'pilotFlap' ? window.kaijuArt.frame('pilot', S.t) : window.kaijuArt.get(pilotPose) || window.kaijuArt.get('pilot'));
         const showBones = S.skeleton > 0 && Math.sin(S.t * 40) > -0.2;
-        if (pilotArt && !showBones) {
-          const spriteW = 88, spriteH = spriteW * pilotArt.height / pilotArt.width;
+        if (pilotArt) {
+          const spriteW = W < 600 ? 106 : 122, spriteH = spriteW * pilotArt.height / pilotArt.width;
           ctx.save();
           ctx.translate(jx, jy);
           ctx.rotate(rot + (S.holding ? Math.sin(S.j.arm) * 0.035 : 0));
+          if (showBones) ctx.filter = 'grayscale(1) brightness(2.4) contrast(1.6)';
           ctx.drawImage(pilotArt, -spriteW * 0.57, -spriteH * 0.5, spriteW, spriteH);
           ctx.restore();
         } else {
@@ -1321,19 +1419,23 @@
 
         // 被拉顿或摩斯拉带飞时，在头顶画出抓着书包的怪兽模型
         if (S.carried > 0 && S.carryType) {
-          window.drawTokusatsuAirEntity(ctx, { type: S.carryType, w: 16, h: 8, ph: 0, hit: false }, jx, jy - 32, PPM, S.t);
+          const carrier = window.kaijuArt && window.kaijuArt.frame(S.carryType === 'mothra' ? 'moth' : 'rodan', S.t);
+          if (carrier) {
+            const width = W < 600 ? 145 : 185, height = width * carrier.height / carrier.width;
+            ctx.drawImage(carrier, jx - width / 2, jy - height - 20 + Math.sin(S.t * 3) * 3, width, height);
+          }
         }
 
         // 速度线特效
         if (S.j.vx > 54) {
-          ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
-          ctx.lineWidth = 2;
+          ctx.fillStyle = S.stage >= 3 ? 'rgba(216, 201, 170, 0.38)' : 'rgba(32, 38, 40, 0.35)';
           for (let i = 0; i < 7; i++) {
             const yy = (i * 97 + S.t * 260) % (H + 80) - 40;
             ctx.beginPath();
             ctx.moveTo(jx - 60 - i * 22, yy);
-            ctx.lineTo(jx - 140 - i * 22, yy);
-            ctx.stroke();
+            ctx.lineTo(jx - 150 - i * 22, yy - 1.5);
+            ctx.lineTo(jx - 130 - i * 22, yy + 2);
+            ctx.closePath(); ctx.fill();
           }
         }
 
@@ -1385,6 +1487,7 @@
 
   // ---------------- 自检测试工具 (验证核心循环) ----------------
   function runTests() {
+    S.testMode = true;
     const checks = {}, states = [];
     const A = (k, v) => { checks[k] = !!v; };
     const snap = () => states.push(S.phase);
@@ -1418,7 +1521,7 @@
       S.carried = 0;
 
       hit(makeEnt('mothra', 100, 40, Math.random));
-      A('mothra_recharges', S.j.energy > 80 && S.carried > 0 && S.carryType === 'mothra');
+      A('mothra_recharges', S.j.energy === Math.min(maxEnergy(), 60 + level('moth') * 15) && S.carried > 0 && S.carryType === 'mothra');
       S.carried = 0;
 
       // 验证地面设施与弹跳受身
@@ -1428,6 +1531,7 @@
       A('trampoline_boost', S.j.vy > 30 && S.events['trampoline'] > 0);
 
       // 验证贴地滑跳机制
+      S.loadout.skid = 1; S.ground = []; S.air = []; S.genX = 1e6;
       S.j = { x: 80, y: 0, vx: 25, vy: -10, energy: 10, arm: 0 }; S.phase = 'flying';
       step(1 / 60);
       A('ground_skid_bounce', S.j.vy > 10 && S.phase === 'flying');
@@ -1459,14 +1563,24 @@
   const q = new URLSearchParams(location.search);
   if (q.get('test') === '1') {
     runTests();
-  } else if (q.get('artpreview') === '1') {
+  } else if (q.get('artpreview') === 'paper') {
+    startGame('career', 0);
+    S.landingType = 'anguirus';
+    S.frozen = true;
+    setTimeout(() => showPaper(900, 1500), 800);
+  } else if (q.has('artpreview')) {
+    const previewStage = clamp(Number(q.get('artpreview')) || 1, 1, 4);
+    const previewAir = ['mothra', 'rodan', 'gillas', 'oilrig'];
+    const previewGround = ['trampoline', 'anguirus', 'ultraman', 'dolly'];
     startGame('distance', 0);
     S.phase = 'flying';
     S.j = { x: 300, y: 24, vx: 48, vy: 0, energy: 72, arm: 0 };
-    S.dist = 300; S.camX = 300; S.camY = 0; S.stage = 1;
-    S.air = [makeEnt('mothra', 300 + W * 0.4 / PPM, 30, rnd32(9))];
+    S.dist = 300; S.camX = 300; S.camY = 0; S.stage = previewStage;
+    S.air = [makeEnt(previewAir[previewStage - 1], 300 + W * 0.4 / PPM, 30, rnd32(9))];
+    S.ground = [makeGround(previewGround[previewStage - 1], 300 + W * 0.36 / PPM)];
     S.frozen = true;
     updateHUD();
+    $('tip').textContent = '按住挥臂爬升，松开滑翔 · 完成飞行获得片场点数';
   } else {
     showMenu();
   }

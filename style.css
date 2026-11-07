@@ -572,6 +572,7 @@ html, body {
 
 .director-badge { background: #d5b578; border: 1px solid var(--film-ink); border-radius: 2px; }
 .card h1 { color: var(--film-red); text-shadow: 2px 2px 0 #272c2e; }
+.card h2 { color: var(--film-red); }
 .card .sub { color: #4f6672; }
 .card p.lead { color: #3d4649; }
 .modes button, .btns button {
@@ -587,7 +588,47 @@ html, body {
 .how b { color: #983f32; }
 .legend { color: #515a5b; }
 
+/* The title card is framed by the same practical-effect puppets used in play. */
+#menu::before, #menu::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: min(20vw, 250px);
+  height: min(38vw, 440px);
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  pointer-events: none;
+  filter: drop-shadow(7px 12px 3px rgba(0, 0, 0, 0.55));
+}
+#menu::before {
+  left: max(14px, calc(50% - 600px));
+  transform: translateY(-46%) rotate(-17deg);
+  background-image: url('art_prototypes/full_assets/pilot-flap.webp');
+}
+#menu::after {
+  right: max(14px, calc(50% - 600px));
+  transform: translateY(-40%) rotate(12deg);
+  background-image: url('art_prototypes/production_sample/moth.webp');
+}
+#menu .card { z-index: 1; }
+.card { max-height: calc(100dvh - 32px); overflow-y: auto; }
+#workshop { z-index: 30; }
+.workshop-card { max-width: 760px; }
+.workshop-intro { margin: 12px 0; font-size: 13px; line-height: 1.6; }
+.reward { margin: 12px 0; font-weight: 800; color: #87432e; }
+.upgrade { display: flex; justify-content: space-between; gap: 16px; text-align: left; padding: 13px 0; border-top: 1px solid #9b9079; }
+.upgrade h3 { font-size: 16px; margin-bottom: 5px; }
+.upgrade small, .upgrade-next { color: #596569; }
+.upgrade p { font-size: 12px; line-height: 1.6; }
+.upgrade-actions { display: flex; flex-direction: column; gap: 6px; min-width: 130px; }
+.upgrade-actions label { font-size: 11px; }
+.upgrade select, .upgrade button { padding: 6px; background: #efe4ce; color: #20252a; border: 1px solid #5c655f; border-radius: 2px; }
+.upgrade button { background: #a74f39; color: #fff4df; cursor: pointer; }
+.upgrade button:disabled { opacity: 0.45; cursor: default; }
+
 @media (max-width: 600px) {
+  #menu::before, #menu::after { display: none; }
   #hud { padding: 10px; }
   .hud-row {
     display: grid;
