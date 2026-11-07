@@ -1,0 +1,170 @@
+[
+  {
+    "name": "opening-godzilla",
+    "refs": [
+      "../revision5/opening-godzilla.png",
+      "reference-godzilla.jpg"
+    ],
+    "size": "1536x1024"
+  },
+  {
+    "name": "opening-gamera",
+    "refs": [
+      "../revision5/opening-gamera.png",
+      "reference-gamera.jpg"
+    ],
+    "size": "1536x1024"
+  },
+  {
+    "name": "opening-anguirus",
+    "refs": [
+      "../revision5/opening-anguirus.png"
+    ],
+    "size": "1536x1024"
+  },
+  {
+    "name": "oilrig",
+    "refs": [
+      "../revision5/oilrig-source.png",
+      "reference-godzilla.jpg"
+    ],
+    "size": "2048x1024"
+  },
+  {
+    "name": "gamera",
+    "refs": [
+      "../revision6/gamera-source.png",
+      "reference-gamera.jpg"
+    ],
+    "size": "2048x1024"
+  },
+  {
+    "name": "anguirus",
+    "refs": [
+      "../revision6/anguirus-source.png"
+    ],
+    "size": "2048x1024"
+  },
+  {
+    "name": "can",
+    "refs": [
+      "reference-timer.jpg"
+    ],
+    "size": "2048x1024"
+  },
+  {
+    "name": "ending-anguirus",
+    "refs": [
+      "reference-anguirus-ending.png"
+    ],
+    "size": "2048x2048"
+  },
+  {
+    "name": "photo-cloud",
+    "refs": [
+      "reference-visitors.png"
+    ],
+    "size": "2048x1024"
+  },
+  {
+    "name": "photo-rodan",
+    "refs": [
+      "reference-visitors.png"
+    ],
+    "size": "2048x1024"
+  },
+  {
+    "name": "photo-mothra",
+    "refs": [
+      "reference-visitors.png"
+    ],
+    "size": "2048x1024"
+  },
+  {
+    "name": "photo-gamera",
+    "refs": [
+      "reference-visitors.png",
+      "reference-gamera.jpg"
+    ],
+    "size": "2048x1024"
+  },
+  {
+    "name": "photo-plane",
+    "refs": [
+      "reference-visitors.png"
+    ],
+    "size": "2048x1024"
+  },
+  {
+    "name": "photo-gillas",
+    "refs": [
+      "reference-visitors.png"
+    ],
+    "size": "2048x1024"
+  },
+  {
+    "name": "photo-oilrig",
+    "refs": [
+      "reference-visitors.png",
+      "reference-godzilla.jpg"
+    ],
+    "size": "2048x1024"
+  },
+  {
+    "name": "photo-chili",
+    "refs": [
+      "reference-visitors.png"
+    ],
+    "size": "2048x1024"
+  },
+  {
+    "name": "photo-can",
+    "refs": [
+      "reference-visitors.png",
+      "reference-timer.jpg"
+    ],
+    "size": "2048x1024"
+  },
+  {
+    "name": "photo-birds",
+    "refs": [
+      "reference-visitors.png"
+    ],
+    "size": "2048x1024"
+  },
+  {
+    "name": "photo-trampoline",
+    "refs": [
+      "reference-visitors.png"
+    ],
+    "size": "2048x1024"
+  },
+  {
+    "name": "photo-building",
+    "refs": [
+      "reference-visitors.png"
+    ],
+    "size": "2048x1024"
+  },
+  {
+    "name": "photo-vent",
+    "refs": [
+      "reference-visitors.png"
+    ],
+    "size": "2048x1024"
+  },
+  {
+    "name": "photo-bento",
+    "refs": [
+      "reference-visitors.png"
+    ],
+    "size": "2048x1024"
+  },
+  {
+    "name": "photo-dolly_rail",
+    "refs": [
+      "reference-visitors.png"
+    ],
+    "size": "2048x1024"
+  }
+]
