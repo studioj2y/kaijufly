@@ -6,12 +6,12 @@
     stage2: 'art_prototypes/full_assets/stage2.webp',
     stage3: 'art_prototypes/full_assets/stage3.webp',
     stage4: 'art_prototypes/full_assets/stage4.webp',
-    moth: 'art_prototypes/revision2/moth-frame-0.webp',
-    rodan: 'art_prototypes/revision2/rodan-frame-0.webp',
+    moth: 'art_prototypes/revision3/moth-frame-0.webp',
+    rodan: 'art_prototypes/revision3/rodan-frame-0.webp',
     balloon: 'art_prototypes/full_assets/balloon.webp',
     plane: 'art_prototypes/revision2/plane-right.webp',
-    cloud: 'art_prototypes/revision2/cloud-frame-0.webp',
-    gillas: 'art_prototypes/revision2/gillas-frame-0.webp',
+    cloud: 'art_prototypes/revision3/cloud-frame-0.webp',
+    gillas: 'art_prototypes/revision3/gillas-frame-0.webp',
     oilrig: 'art_prototypes/full_assets/oilrig.webp',
     chili: 'art_prototypes/full_assets/chili.webp',
     can: 'art_prototypes/full_assets/can.webp',
@@ -35,7 +35,7 @@
   };
   const images = {};
   ['boy', 'girl', 'moth', 'rodan', 'gillas', 'cloud'].forEach(name => {
-    for (let frame = 0; frame < 7; frame++) files[name + 'Frame' + frame] = 'art_prototypes/revision2/' + name + '-frame-' + frame + '.webp';
+    for (let frame = 0; frame < 7; frame++) files[name + 'Frame' + frame] = 'art_prototypes/revision3/' + name + '-frame-' + frame + '.webp';
   });
   if (typeof Image !== 'undefined') {
     Object.keys(files).forEach(name => {
@@ -47,9 +47,13 @@
   window.kaijuArt = {
     character: 'boy',
     setCharacter(character) { this.character = character === 'girl' ? 'girl' : 'boy'; },
-    frame(name, time) {
+    grip(name, time) {
+      // Fixed anchors exported by revision3/build.py after talon registration.
+      return name === 'moth' ? { x: 0.6009, y: 0.9031 } : { x: 0.3505, y: 0.8456 };
+    },
+    frame(name, time, offset = 0) {
       if (name === 'pilot') name = this.character;
-      return this.get(name + 'Frame' + (Math.floor(Math.max(0, time) * 7) % 7)) || this.get(name + 'Frame0');
+      return this.get(name + 'Frame' + ((Math.floor(Math.max(0, time) * 7) + offset) % 7)) || this.get(name + 'Frame0');
     },
     get(name) {
       if (['pilot', 'pilotFlap', 'pilotDive'].includes(name)) name = this.character + 'Frame3';

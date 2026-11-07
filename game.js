@@ -319,6 +319,7 @@
   }
 
   function startGame(mode, missionIdx) {
+    S.flapStartedAt = 0;
     S.loadout = progress ? progress.snapshot() : {};
     S.rewarded = false;
     $('workshop').classList.add('hidden');
@@ -881,6 +882,7 @@
         launch();
         break;
       case 'flying':
+        if (!S.holding) S.flapStartedAt = S.t;
         S.holding = true;
         break;
     }
@@ -1390,15 +1392,29 @@
         window.drawTokusatsuLandingVignette(ctx, S.landingType, 0, 0, 0.58, S.landingT, 360, 260);
         ctx.restore();
       } else {
-        const rot = S.spin > 0 ? S.t * 14 : clamp(Math.atan2(-S.j.vy, Math.max(1, S.j.vx)) * 0.55, -0.6, 0.9);
-        const pilotPose = S.holding && S.j.energy > 0 ? 'pilotFlap' : S.j.vy < -8 ? 'pilotDive' : 'pilot';
-        const pilotArt = window.kaijuArt && (pilotPose === 'pilotFlap' ? window.kaijuArt.frame('pilot', S.t) : window.kaijuArt.get(pilotPose) || window.kaijuArt.get('pilot'));
+        const rot = S.carried > 0 ? 0 : S.spin > 0 ? S.t * 14 : clamp(Math.atan2(-S.j.vy, Math.max(1, S.j.vx)) * 0.55, -0.6, 0.9);
+        const pilotPose = S.carried > 0 ? 'pilot' : S.holding && S.j.energy > 0 ? 'pilotFlap' : S.j.vy < -8 ? 'pilotDive' : 'pilot';
+        const flapTime = Math.max(0, S.t - (S.flapStartedAt || 0));
+        const pilotArt = window.kaijuArt && (pilotPose === 'pilotFlap' ? window.kaijuArt.frame('pilot', flapTime, 5) : window.kaijuArt.get(pilotPose) || window.kaijuArt.get('pilot'));
         const showBones = S.skeleton > 0 && Math.sin(S.t * 40) > -0.2;
+        // Align the creature's talons to the shoulder/back, then paint the child
+        // in front. The two silhouettes keep contact through the wingbeat.
+        if (S.carried > 0 && S.carryType && pilotArt) {
+          const name = S.carryType === 'mothra' ? 'moth' : 'rodan';
+          const carrier = window.kaijuArt.frame(name, S.t);
+          if (carrier) {
+            const width = W < 600 ? 145 : 185, height = width * carrier.height / carrier.width;
+            const pilotW = W < 600 ? 106 : 122, pilotH = pilotW * pilotArt.height / pilotArt.width;
+            const grip = window.kaijuArt.grip(name, S.t);
+            const targetX = jx - pilotW * 0.06, targetY = jy + pilotH * 0.15;
+            ctx.drawImage(carrier, targetX - width * grip.x, targetY - height * grip.y, width, height);
+          }
+        }
         if (pilotArt) {
           const spriteW = W < 600 ? 106 : 122, spriteH = spriteW * pilotArt.height / pilotArt.width;
           ctx.save();
           ctx.translate(jx, jy);
-          ctx.rotate(rot + (S.holding ? Math.sin(S.j.arm) * 0.035 : 0));
+          ctx.rotate(rot + (S.holding && S.carried <= 0 ? Math.sin(S.j.arm) * 0.035 : 0));
           if (showBones) ctx.filter = 'grayscale(1) brightness(2.4) contrast(1.6)';
           ctx.drawImage(pilotArt, -spriteW * 0.57, -spriteH * 0.5, spriteW, spriteH);
           ctx.restore();
@@ -1410,15 +1426,6 @@
             bones: showBones,
             sx: 1, sy: 1
           });
-        }
-
-        // 被拉顿或摩斯拉带飞时，在头顶画出抓着书包的怪兽模型
-        if (S.carried > 0 && S.carryType) {
-          const carrier = window.kaijuArt && window.kaijuArt.frame(S.carryType === 'mothra' ? 'moth' : 'rodan', S.t);
-          if (carrier) {
-            const width = W < 600 ? 145 : 185, height = width * carrier.height / carrier.width;
-            ctx.drawImage(carrier, jx - width / 2, jy - height - 20 + Math.sin(S.t * 3) * 3, width, height);
-          }
         }
 
         // 速度线特效
