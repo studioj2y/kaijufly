@@ -161,13 +161,13 @@
   // ---------------- 实体尺寸与高度生成 ----------------
   function entitySize(t) {
     switch (t) {
-      case 'cloud': return [22, 10];
+      case 'cloud': return [32, 26];
       case 'rodan': return [16, 7];
       case 'mothra': return [16, 8];
-      case 'gamera': return [17, 11];
+      case 'gamera': return [19, 15];
       case 'plane': return [14, 6];
       case 'gillas': return [16, 18];
-      case 'oilrig': return [15, 26];
+      case 'oilrig': return [25, 44];
       case 'chili': return [4, 4];
       case 'can': return [4, 4];
       case 'birds': return [10, 5];
@@ -201,7 +201,21 @@
   }
 
   function makeGround(t, x, isFacility = false) {
-    return { type: t, x: x, w: groundSize(t), hit: false, isFacility: isFacility };
+    const ratio = window.kaijuSceneAssets && window.kaijuSceneAssets.groundRatios[t];
+    const h = ratio ? Math.min(window.kaijuLayout.groundHeights[t], groundSize(t) / ratio) : window.kaijuLayout.groundHeights[t];
+    return { type: t, x: x, w: ratio ? h * ratio : groundSize(t), h, hit: false, isFacility: isFacility };
+  }
+
+  function placeEntity(create, grounded = false) {
+    for (let attempt = 0; attempt < 18; attempt++) {
+      const entity = create();
+      if (window.kaijuLayout.clear(entity, S.air, S.ground, grounded)) {
+        (grounded ? S.ground : S.air).push(entity);
+        return entity;
+      }
+    }
+    // A natural empty stretch is preferable to stacking two props together.
+    return null;
   }
 
   function genChunk(start) {
@@ -221,21 +235,21 @@
     // Rooted monster set pieces are separate from airborne altitude rows.
     if (r() < 0.22) {
       const type = r() < 0.5 ? 'gillas' : 'oilrig';
-      S.air.push(makeEnt(type, start + 20 + r() * (CHUNK - 40), type === 'oilrig' ? 13 : 9, r));
+      placeEntity(() => makeEnt(type, start + 28 + r() * (CHUNK - 56), type === 'oilrig' ? 22 : 9, r));
     }
 
     // 生成地面交互设施 (弹力蹦床、纸板大楼、原子喷口、剧组便当、滑轨车)
     for (let i = 0; i < facN; i++) {
       const ft = GROUND_FACILITY_TYPES[Math.floor(r() * GROUND_FACILITY_TYPES.length)];
-      const fx = start + 14 + (i / facN) * (CHUNK - 28) + (r() - 0.5) * 10;
-      S.ground.push(makeGround(ft, fx, true));
+      placeEntity(() => makeGround(ft, start + 20 + r() * (CHUNK - 40), true), true);
     }
 
     // 规律生成见学收场道具 (安吉拉斯、背景画板、东京铁塔等)
     const endN = 1 + Math.floor(r() * 2);
     for (let i = 0; i < endN; i++) {
       const lt = GROUND_LANDING_TYPES[Math.floor(r() * GROUND_LANDING_TYPES.length)];
-      S.ground.push(makeGround(lt, start + 25 + r() * (CHUNK - 50), false));
+      const margin = start === 0 ? 65 : 22;
+      placeEntity(() => makeGround(lt, start + margin + r() * (CHUNK - margin - 22), false), true);
     }
   }
 
@@ -263,8 +277,10 @@
         // Ground props already supply interactions below 30 m.
         if (row === 0) count = r() < 0.08 + level('density') * 0.025 ? 1 : 0;
         for (let i = 0; i < count; i++) {
-          const encounter = distribution.sample(r, row);
-          S.air.push(makeEnt(encounter.type, chunk * CHUNK + 12 + r() * (CHUNK - 24), encounter.y, r));
+          placeEntity(() => {
+            const encounter = distribution.sample(r, row);
+            return makeEnt(encounter.type, chunk * CHUNK + 18 + r() * (CHUNK - 36), encounter.y, r);
+          });
         }
       }
     }
@@ -281,6 +297,7 @@
   }
 
   function ensureWorld() {
+    if (S.testMode && S.testEmptyWorld) return;
     let generated = false;
     while (S.genX < S.camX + W / PPM + CHUNK * 3) {
       genChunk(S.genX);
@@ -334,6 +351,8 @@
 
   // ---------------- 游戏流程管理 ----------------
   function showMenu() {
+    $('skipOpening').classList.add('hidden');
+    if (!S.openingMonster) S.openingMonster = 'moth';
     $('characterSelect').classList.add('hidden');
     $('workshop').classList.add('hidden');
     S.phase = 'menu'; S.holding = false; S.frozen = false;
@@ -348,6 +367,8 @@
   }
 
   function startGame(mode, missionIdx) {
+    $('skipOpening').classList.add('hidden');
+    $('characterSelect').classList.add('hidden');
     S.flapStartedAt = 0;
     S.loadout = progress ? progress.snapshot() : {};
     S.rewarded = false;
@@ -505,7 +526,10 @@
     for (let i = 0; i < S.air.length; i++) {
       const e = S.air[i];
       if (e.hit || e.x < j.x - 60 || e.x > j.x + 60) continue;
-      if (Math.abs(e.x - j.x) < e.w / 2 + 2.0 && Math.abs(e.y - j.y) < e.h / 2 + 2.0) {
+      // The branching rays are decorative; charge is collected in the cloud.
+      // Enlarging the lightning must not turn its entire halo into free refills.
+      const hitW = e.type === 'cloud' ? 18 : e.w, hitH = e.type === 'cloud' ? 9 : e.h;
+      if (Math.abs(e.x - j.x) < hitW / 2 + 2.0 && Math.abs(e.y - j.y) < hitH / 2 + 2.0) {
         hit(e);
       }
     }
@@ -629,11 +653,31 @@
     return !!S.mission && S.dist >= S.mission.target;
   }
 
-  function doLanding(forceType) {
+  function checkLandingProps(previous) {
+    let first = null, firstTime = Infinity;
+    for (const g of S.ground) {
+      if (g.isFacility || g.hit) continue;
+      const contact = window.kaijuLayout.sweptContact(previous, S.j, window.kaijuLayout.bounds(g, true));
+      if (contact !== null && contact < firstTime) { first = g; firstTime = contact; }
+    }
+    if (!first) return false;
+    S.j.x = previous.x + (S.j.x - previous.x) * firstTime;
+    S.j.y = previous.y + (S.j.y - previous.y) * firstTime;
+    S.dist = Math.max(previous.dist, S.j.x);
+    S.camX = Math.max(0, S.j.x);
+    doLanding(first.type, first);
+    return true;
+  }
+
+  function doLanding(forceType, touchedProp) {
     if (S.phase !== 'flying') return;
-    const g = forceType ? { type: forceType, x: S.j.x, w: 8 } : findGround(S.j.x);
+    const g = touchedProp || (forceType ? { type: forceType, x: S.j.x, w: 8 } : null);
     S.landingType = g ? g.type : 'sand';
+    S.endingWait = 0;
+    if (window.kaijuArt) window.kaijuArt.prioritize(Array.from({length: 7}, (_, i) => 'ending-' + S.landingType + '-' + S.character + '-' + i));
     S.landingObj = g;
+    if (g) g.hit = true;
+    S.j.vx = 0; S.j.vy = 0; S.carried = 0;
     S.phase = 'landing';
     S.landingT = 0; S.holding = false; S.shake = 15; S.flash = 0.35;
 
@@ -641,9 +685,10 @@
     S.missionOk = checkMission();
 
     const L = window.TOKUSATSU_LANDINGS[S.landingType] || window.TOKUSATSU_LANDINGS['sand'];
-    $('bigText').textContent = L.head;
-    $('bigText').classList.add('on');
-    mug(L.face, L.name);
+    $('bigText').classList.remove('on');
+    $('mug').classList.add('hidden');
+    $('toast').classList.remove('on');
+    $('hud').classList.add('hidden');
 
     if (S.landingType === 'anguirus' || S.landingType === 'canvas') {
       window.kaijuAudio.play('tear');
@@ -682,6 +727,7 @@
 
     const ok = S.mode === 'distance';
     $('resTitle').textContent = ok ? '本 次 见 学 收 场' : '通 告 留 待 改 进';
+    if (window.kaijuScene) window.kaijuScene.drawEnding($('resPic').getContext('2d'), S.landingType, 2, S.character, 0, 0, 500, 300);
     $('resDist').textContent = dist;
     $('resScore').textContent = score;
     $('resBest').textContent = S.best.dist;
@@ -707,13 +753,14 @@
       '<p>摄影指导表示，该名小朋友在飞行途中熟练触发了 ' +
       Object.keys(S.events).map(k => STUNT_LABEL[k] || k).join('、') +
       ' 等高难度特摄动作，全程单手操作，表情十分精彩！</p>' +
-      '<p>总监督已连夜签发下一部拍摄通告，道具组正忙着修补被撞破的布景大楼与短裤。</p>' +
+      '<p>总监督已连夜签发下一部拍摄通告，道具组正忙着整理布景、修补幕布。</p>' +
       '<span class="stamp">特 报 已 存 档 🏆</span>';
 
     $('paper').classList.remove('hidden');
 
     const pc = $('paperPic').getContext('2d');
-    window.drawTokusatsuLandingVignette(pc, S.landingType, 250, 270, 1.0, 0.6, 500, 360);
+    if (window.kaijuScene) window.kaijuScene.drawEnding(pc, S.landingType, 2, S.character, 0, 0, 500, 360);
+    else window.drawTokusatsuLandingVignette(pc, S.landingType, 250, 270, 1.0, 0.6, 500, 360);
   }
 
   function updateHUD() {
@@ -763,6 +810,10 @@
     if (S.comboTimer > 0) { S.comboTimer -= dt; if (S.comboTimer <= 0) S.combo = 0; }
 
     switch (S.phase) {
+      case 'intro':
+        if (window.kaijuScene.openingReady(S)) S.introT += dt;
+        if (S.introT >= 2.8) showMenu();
+        break;
       case 'aim':
         S.aimT += dt; S.angle = 12 + 66 * tri(S.aimT * 0.85); updateHUD(); break;
       case 'power':
@@ -770,6 +821,10 @@
       case 'flying':
         updateFlight(dt); break;
       case 'landing':
+        S.endingWait += dt;
+        // A cold download pauses on the intact prop; start the animation only
+        // after its frames arrive, with a bounded fallback for failed networks.
+        if (window.kaijuScene && !window.kaijuScene.endingReady(S) && S.endingWait < 5) break;
         S.landingT += dt;
         if (S.landingT > 2.9) showResult();
         break;
@@ -779,6 +834,7 @@
   let flapSfxT = 0;
   function updateFlight(dt) {
     const j = S.j;
+    const previous = { x: j.x, y: j.y, dist: S.dist };
 
     // 拉顿高速顺风车 或 摩斯拉神圣鳞粉带飞
     if (S.carried > 0) {
@@ -868,6 +924,8 @@
     ensureWorld();
     checkStageTransition();
 
+    if (checkLandingProps(previous)) return;
+
     if (S.carried <= 0) {
       checkCollisions();
       checkGroundFacilities();
@@ -928,6 +986,15 @@
     $('stage').dataset.hero = S.character;
     try { localStorage.setItem('kaijufly_character', S.character); } catch (_) {}
   }
+  function startOpening() {
+    const roster = window.kaijuScene.monsters;
+    S.openingMonster = roster[Math.floor(Math.random() * roster.length)];
+    window.kaijuArt.prioritize(['opening-background', 'opening-hero-' + S.character, 'opening-' + S.openingMonster]);
+    S.introT = 0; S.phase = 'intro'; S.frozen = false; S.holding = false;
+    ['menu', 'characterSelect', 'result', 'paper', 'hud', 'mug'].forEach(id => $(id).classList.add('hidden'));
+    $('skipOpening').classList.remove('hidden');
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) showMenu();
+  }
   function showCharacterSelect() {
     S.phase = 'character'; S.holding = false;
     $('menu').classList.add('hidden');
@@ -956,6 +1023,10 @@
     window.addEventListener('resize', resize);
     window.addEventListener('keydown', (e) => {
       if (S.phase === 'character') return;
+      if (S.phase === 'intro') {
+        if ([' ', 'Enter', 'Escape'].includes(e.key)) { e.preventDefault(); showMenu(); }
+        return;
+      }
       if (S.phase === 'workshop') {
         if (e.key === 'Escape') closeWorkshop();
         return;
@@ -993,8 +1064,9 @@
     $('openWorkshop').addEventListener('click', openWorkshop);
     $('changeCharacter').addEventListener('click', showCharacterSelect);
     document.querySelectorAll('[data-character]').forEach(button => button.addEventListener('click', () => {
-      setCharacter(button.dataset.character); showMenu();
+      setCharacter(button.dataset.character); startOpening();
     }));
+    $('skipOpening').addEventListener('click', showMenu);
     $('resultWorkshop').addEventListener('click', openWorkshop);
     $('closeWorkshop').addEventListener('click', closeWorkshop);
     $('upgradeList').addEventListener('click', e => {
@@ -1017,6 +1089,7 @@
 
   // ---------------- 画面渲染 (特摄片场视差美学与阶段换幕) ----------------
   function drawArtSky() {
+    if (window.kaijuScene && window.kaijuScene.background(ctx, S, W, H, PPM)) return true;
     const keys = ['city', 'stage2', 'stage3', 'stage4'];
     const art = window.kaijuArt && window.kaijuArt.get(keys[(S.stage || 1) - 1]);
     if (!art) return false;
@@ -1179,48 +1252,8 @@
   function drawGround() {
     const y = wy(0);
     const stage = S.stage || 1;
-    // 片场地表颜色随阶段演化
-    const floorColors = [
-      ['#354951', '#17232a', '#c79a66'],
-      ['#514037', '#20252a', '#b98859'],
-      ['#263746', '#101922', '#7f93a0'],
-      ['#51504e', '#222327', '#b8a888']
-    ];
-    const palette = floorColors[stage - 1] || floorColors[0];
-    const inkFloor = ctx.createLinearGradient(0, y, 0, H);
-    inkFloor.addColorStop(0, palette[0]);
-    inkFloor.addColorStop(1, palette[1]);
-    const groundCol = inkFloor, borderCol = palette[2];
-    ctx.fillStyle = groundCol;
-    ctx.fillRect(0, y, W, H - y + 300);
-    ctx.fillStyle = borderCol;
-    ctx.fillRect(0, y, W, 5);
-
-    ctx.strokeStyle = 'rgba(216, 184, 135, 0.15)';
-    ctx.lineWidth = 1;
-    const hatch = (S.camX * PPM) % 36;
-    for (let x = -H - hatch; x < W + H; x += 36) {
-      ctx.beginPath();
-      ctx.moveTo(x, y + 6);
-      ctx.lineTo(x - (H - y) * 0.44, H);
-      ctx.stroke();
-    }
-
-    // 摄影机微缩双钢轨 (地面导轨)
-    ctx.strokeStyle = stage === 3 ? '#a49c7e' : '#7f8889';
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.moveTo(0, y + 16);
-    ctx.lineTo(W, y + 16);
-    ctx.moveTo(0, y + 24);
-    ctx.lineTo(W, y + 24);
-    ctx.stroke();
-
-    for (let x = -((S.camX * PPM) % 40); x < W + 40; x += 40) {
-      ctx.beginPath();
-      ctx.moveTo(x, y + 14);
-      ctx.lineTo(x, y + 26);
-      ctx.stroke();
+    if (!(window.kaijuScene && window.kaijuScene.floor(ctx, S, W, H, PPM, y))) {
+      ctx.fillStyle = '#354951';ctx.fillRect(0, y, W, Math.max(0, H - y));
     }
 
     // 绘制地面特摄设施与收场物件 (准确传入 sx 视口坐标！)
@@ -1229,7 +1262,7 @@
       if (sx > -160 && sx < W + 160) {
         const art = window.kaijuArt && window.kaijuArt.get(g.type);
         if (art) {
-          const scale = Math.min(g.w * PPM / art.width, Math.min(230, H * 0.36) / art.height);
+          const scale = Math.min(g.w * PPM / art.width, g.h * PPM / art.height);
           const dw = art.width * scale, dh = art.height * scale;
           ctx.globalAlpha = g.hit ? 0.55 : 1;
           ctx.drawImage(art, sx - dw / 2, y - dh, dw, dh);
@@ -1361,6 +1394,10 @@
   function render() {
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     ctx.clearRect(0, 0, W, H);
+    if (window.kaijuScene && (['character', 'intro', 'menu'].includes(S.phase) || (S.phase === 'workshop' && workshopReturn === 'menu'))) {
+      window.kaijuScene.opening(ctx, S, W, H);
+      return;
+    }
     ctx.save();
 
     if (S.shake > 0) {
@@ -1414,11 +1451,7 @@
     const jx = wx(S.j.x), jy = wy(S.j.y);
     if (S.phase === 'flying' || S.phase === 'landing') {
       if (S.phase === 'landing') {
-        ctx.save();
-        ctx.translate(jx, wy(0));
-        ctx.scale(1.25, 1.25);
-        window.drawTokusatsuLandingVignette(ctx, S.landingType, 0, 0, 0.58, S.landingT, 360, 260);
-        ctx.restore();
+        // The collision plays its dedicated seven-frame scene above the world.
       } else {
         const rot = S.carried > 0 ? 0 : S.spin > 0 ? S.t * 14 : clamp(Math.atan2(-S.j.vy, Math.max(1, S.j.vx)) * 0.55, -0.6, 0.9);
         const pilotPose = S.carried > 0 ? 'pilot' : S.holding && S.j.energy > 0 ? 'pilotFlap' : S.j.vy < -8 ? 'pilotDive' : 'pilot';
@@ -1484,6 +1517,7 @@
 
     ctx.restore();
 
+    if (S.phase === 'landing' && window.kaijuScene) window.kaijuScene.endingOverlay(ctx, S, W, H);
     if (S.phase === 'aim' || S.phase === 'power') drawMeter();
     if (S.flash > 0) {
       ctx.fillStyle = 'rgba(255, 255, 255, ' + Math.min(0.85, S.flash) + ')';
@@ -1534,6 +1568,8 @@
       press(); A('launch_flying', S.phase === 'flying'); snap(); release();
       A('launch_vx', S.j.vx > 10 && S.j.vy > 0);
 
+      // Isolate stamina physics from randomly placed recharge/collision props.
+      S.testEmptyWorld = true; S.air = []; S.ground = [];
       S.holding = true;
       const e0 = S.j.energy;
       for (let i = 0; i < 120; i++) step(1 / 60);
@@ -1542,6 +1578,7 @@
       A('energy_nonnegative', S.j.energy >= 0);
       A('still_airborne_or_landed', S.phase === 'flying' || S.phase === 'landing' || S.phase === 'result');
       S.holding = false;
+      S.testEmptyWorld = false;
 
       // 验证拉顿与摩斯拉的差异
       startGame('distance', 0); press(); press(); S.holding = false;
@@ -1561,6 +1598,7 @@
       A('trampoline_boost', S.j.vy > 30 && S.events['trampoline'] > 0);
 
       // 验证贴地滑跳机制
+      S.testEmptyWorld = true;
       S.loadout.skid = 1; S.ground = []; S.air = []; S.genX = 1e6;
       S.j = { x: 80, y: 0, vx: 25, vy: -10, energy: 10, arm: 0 }; S.phase = 'flying';
       step(1 / 60);
@@ -1579,6 +1617,7 @@
     }
 
     const failed = Object.keys(checks).filter(k => !checks[k]);
+    S.testEmptyWorld = false;
     const out = { pass: failed.length === 0, failed: failed, checks: checks, states: states };
     $('test-out').textContent = JSON.stringify(out);
     document.title = failed.length === 0 ? 'KAIJUFLY TEST PASS' : 'KAIJUFLY TEST FAIL';
@@ -1623,6 +1662,7 @@
   window.__KAIJU__ = {
     S: S, step: step, press: press, release: release,
     startGame: startGame, hit: hit, doLanding: doLanding,
-    showResult: showResult, render: render, runTests: runTests, ensureWorld: ensureWorld
+    showResult: showResult, render: render, runTests: runTests, ensureWorld: ensureWorld,
+    startOpening, showMenu, setCharacter, checkLandingProps
   };
 })();

@@ -37,33 +37,25 @@
       <div id="mugText">见学探险中！</div>
     </div>
     <button id="soundBtn">音效：开</button>
+    <button id="skipOpening" class="hidden">跳过登场 · 进入菜单</button>
 
     <!-- 1. 主菜单面版 (欢迎来到昭和特摄片场) -->
     <div id="menu" class="panel">
       <div class="card">
         <div class="clapper-stripe"></div>
-        <div class="director-badge">🎬 TOKUSATSU STUDIO TOUR · 昭和特摄片场见学日</div>
-        <h1>KAIJU FLY</h1>
-        <div class="sub">怪 兽 飞 天 · 特 摄 片 场 大 冒 险</div>
-        <p class="lead">
-          好奇心爆棚的小朋友来到了梦寐以求的特摄电影制片厂！<br>
-          钻进剧组特制的<strong>“片场体验飞天大炮”</strong>，把自己轰向蓝天，掠过微缩大楼与巨兽模型，开启绝无仅有的奇妙见学之旅！
-        </p>
+        <div class="director-badge">TOKUSATSU STUDIO TOUR · 特摄片场见学日</div>
         <div class="modes">
           <button data-mode="distance">自由见学飞行<span>全力以赴！看一发能探索多远片场</span></button>
           <button data-mode="career" class="alt">片场里程通告<span>挑战逐步提高的飞行距离，登上片场特报</span></button>
         </div>
-        <div class="how">
+        <details class="how"><summary>操作指南 · 空格 / 鼠标 / 触屏</summary>
           <b>经典极简操作（仅需一个按键）</b>：空格 / 鼠标左键 / 触屏长按<br>
           ① 按一下 <b>锁定大炮发射仰角</b><br>
           ② 再按一下 <b>锁定装药发射力度</b><br>
           ③ 出炮后 <b>按住不放</b>：小朋友像小鸟一样拼命挥舞手臂爬升微调，<b>消耗体力</b>；松开进入轻盈滑翔。飞得过陡会失速！<br>
           <b>R</b> 重新发射　<b>Esc</b> 返回片场大门
-        </div>
+        </details>
         <div class="btns"><button id="openWorkshop">片场工坊 · 解锁与配置</button><button id="changeCharacter">更换主角</button></div>
-        <div class="legend">
-          低空寻找摩斯拉 · 中空遇见飞机 · 高空寻找拉顿 · 云端引力射线<br>吉拉斯相抱旋风 · 8种见学收场纪念照
-        </div>
       </div>
     </div>
 
@@ -72,6 +64,7 @@
       <div class="card">
         <div class="clapper-stripe"></div>
         <h2 id="resTitle">本 次 见 学 收 场</h2>
+        <canvas id="resPic" width="500" height="300" aria-label="本次见学收场纪念画面"></canvas>
         <div class="resNumbers">
           <div><span>FLIGHT DISTANCE</span><b id="resDist">0</b><span>米</span></div>
           <div><span>STUNT SCORE</span><b id="resScore">0</b><span>分</span></div>
@@ -118,8 +111,8 @@
         <h2>选择你的主角</h2>
         <p>带着好奇心，出发去片场！两位主角的能力相同。</p>
         <div class="character-options">
-          <button class="character-choice" data-character="boy"><img src="art_prototypes/revision4/boy-frame-0.png" alt="开心挥臂的红帽男孩"><b>男生</b><span>红色棒球帽 · 活力见学者</span></button>
-          <button class="character-choice" data-character="girl"><img src="art_prototypes/revision4/girl-frame-0.png" alt="开心挥臂的风镜女孩"><b>女生</b><span>飞行风镜 · 好奇探索家</span></button>
+          <button class="character-choice" data-character="boy"><img src="art_prototypes/revision5/portrait-boy.png" alt="背着书包、兴奋好奇的红帽男孩半身立绘"><b>男生</b><span>红色棒球帽 · 活力见学者</span></button>
+          <button class="character-choice" data-character="girl"><img src="art_prototypes/revision5/portrait-girl.png" alt="抬手探索、兴奋好奇的风镜女孩半身立绘"><b>女生</b><span>飞行风镜 · 好奇探索家</span></button>
         </div>
         <small>之后也可以在主菜单更换。</small>
       </div>
@@ -147,6 +140,9 @@
 <script src="visual_assets.js"></script>
 <script src="progression.js"></script>
 <script src="air_distribution.js"></script>
+<script src="art_prototypes/revision5/manifest.js"></script>
+<script src="world_layout.js"></script>
+<script src="scene_art.js"></script>
 <script src="game.js"></script>
 </body>
 </html>

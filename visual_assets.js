@@ -33,14 +33,33 @@
     clapper: 'art_prototypes/full_assets/clapper.webp',
     camera: 'art_prototypes/full_assets/camera.webp'
   };
-  const images = {};
-  ['boy', 'girl', 'moth', 'rodan', 'gillas', 'cloud', 'gamera', 'oilrig'].forEach(name => {
-    for (let frame = 0; frame < 7; frame++) files[name + 'Frame' + frame] = 'art_prototypes/revision4/' + name + '-frame-' + frame + '.png';
+  const revision = 'art_prototypes/revision5/';
+  // Load the opening first, so selecting a visitor never waits for all endings.
+  const opening = { 'opening-background': revision + 'opening-background.jpg' };
+  ['boy', 'girl'].forEach(name => {
+    opening['opening-hero-' + name] = revision + 'opening-hero-' + name + '.png';
   });
+  ['moth', 'rodan', 'gamera', 'godzilla', 'gillas', 'ghidorah', 'anguirus'].forEach(name => {
+    opening['opening-' + name] = revision + 'opening-' + name + '.png';
+  });
+  ['gamera', 'cloud', 'oilrig'].forEach(name => files[name] = revision + name + '-frame-0.png');
+  const endings = ['canvas', 'anguirus', 'sand', 'tower', 'ultraman', 'water', 'dolly', 'chair'];
+  endings.forEach(name => files[name] = revision + 'prop-' + name + '.png');
+  const images = {};
+  let prioritize = () => {};
+  ['boy', 'girl', 'moth', 'rodan', 'gillas', 'cloud', 'gamera', 'oilrig'].forEach(name => {
+    for (let frame = 0; frame < 7; frame++) files[name + 'Frame' + frame] = (['gamera', 'cloud', 'oilrig'].includes(name) ? revision : 'art_prototypes/revision4/') + name + '-frame-' + frame + '.png';
+  });
+  ['day', 'sunset', 'night', 'moon'].forEach(stage => {
+    for (let i = 0; i < 3; i++) files['parallax-' + stage + '-' + i] = revision + 'parallax-' + stage + '-' + i + '.png';
+  });
+  for (let i = 0; i < 3; i++) files['ground-strip-' + i] = revision + 'ground-strip-' + i + '.png';
+  endings.forEach(name => ['boy', 'girl'].forEach(gender => {
+    for (let i = 0; i < 7; i++) files['ending-' + name + '-' + gender + '-' + i] = revision + 'ending-' + name + '-' + gender + '-' + i + '.png';
+  }));
   if (typeof Image !== 'undefined') {
     const byPath = new Map(), queue = [];
-    Object.keys(files).forEach(name => {
-      const path = files[name];
+    Object.entries({ ...opening, ...files }).forEach(([name, path]) => {
       if (byPath.has(path)) { images[name] = byPath.get(path); return; }
       const image = new Image();
       images[name] = image;
@@ -64,10 +83,17 @@
         image.src = path;
       }
     }
+    prioritize = names => {
+      const wanted = new Set(names.map(name => images[name]));
+      const pending = queue.splice(next);
+      queue.push(...pending.filter(item => wanted.has(item.image)), ...pending.filter(item => !wanted.has(item.image)));
+      pump();
+    };
     pump();
   }
   window.kaijuArt = {
     character: 'boy',
+    prioritize(names) { prioritize(names); },
     setCharacter(character) { this.character = character === 'girl' ? 'girl' : 'boy'; },
     grip(name, time) {
       // Fixed anchors exported by revision3/build.py after talon registration.

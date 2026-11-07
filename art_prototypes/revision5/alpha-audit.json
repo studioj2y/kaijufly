@@ -1,0 +1,1171 @@
+{
+  "gamera-frame-0.png": {
+    "size": [
+      512,
+      512
+    ],
+    "transparent_rgb": 0
+  },
+  "gamera-frame-1.png": {
+    "size": [
+      512,
+      512
+    ],
+    "transparent_rgb": 0
+  },
+  "gamera-frame-2.png": {
+    "size": [
+      512,
+      512
+    ],
+    "transparent_rgb": 0
+  },
+  "gamera-frame-3.png": {
+    "size": [
+      512,
+      512
+    ],
+    "transparent_rgb": 0
+  },
+  "gamera-frame-4.png": {
+    "size": [
+      512,
+      512
+    ],
+    "transparent_rgb": 0
+  },
+  "gamera-frame-5.png": {
+    "size": [
+      512,
+      512
+    ],
+    "transparent_rgb": 0
+  },
+  "gamera-frame-6.png": {
+    "size": [
+      512,
+      512
+    ],
+    "transparent_rgb": 0
+  },
+  "cloud-frame-0.png": {
+    "size": [
+      512,
+      490
+    ],
+    "transparent_rgb": 0
+  },
+  "cloud-frame-1.png": {
+    "size": [
+      512,
+      490
+    ],
+    "transparent_rgb": 0
+  },
+  "cloud-frame-2.png": {
+    "size": [
+      512,
+      490
+    ],
+    "transparent_rgb": 0
+  },
+  "cloud-frame-3.png": {
+    "size": [
+      512,
+      490
+    ],
+    "transparent_rgb": 0
+  },
+  "cloud-frame-4.png": {
+    "size": [
+      512,
+      490
+    ],
+    "transparent_rgb": 0
+  },
+  "cloud-frame-5.png": {
+    "size": [
+      512,
+      490
+    ],
+    "transparent_rgb": 0
+  },
+  "cloud-frame-6.png": {
+    "size": [
+      512,
+      490
+    ],
+    "transparent_rgb": 0
+  },
+  "oilrig-frame-0.png": {
+    "size": [
+      340,
+      512
+    ],
+    "transparent_rgb": 0
+  },
+  "oilrig-frame-1.png": {
+    "size": [
+      340,
+      512
+    ],
+    "transparent_rgb": 0
+  },
+  "oilrig-frame-2.png": {
+    "size": [
+      340,
+      512
+    ],
+    "transparent_rgb": 0
+  },
+  "oilrig-frame-3.png": {
+    "size": [
+      340,
+      512
+    ],
+    "transparent_rgb": 0
+  },
+  "oilrig-frame-4.png": {
+    "size": [
+      340,
+      512
+    ],
+    "transparent_rgb": 0
+  },
+  "oilrig-frame-5.png": {
+    "size": [
+      340,
+      512
+    ],
+    "transparent_rgb": 0
+  },
+  "oilrig-frame-6.png": {
+    "size": [
+      340,
+      512
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-canvas-boy-0.png": {
+    "size": [
+      451,
+      468
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-canvas-boy-1.png": {
+    "size": [
+      451,
+      468
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-canvas-boy-2.png": {
+    "size": [
+      451,
+      468
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-canvas-boy-3.png": {
+    "size": [
+      451,
+      468
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-canvas-boy-4.png": {
+    "size": [
+      451,
+      468
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-canvas-boy-5.png": {
+    "size": [
+      451,
+      468
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-canvas-boy-6.png": {
+    "size": [
+      451,
+      468
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-canvas-girl-0.png": {
+    "size": [
+      451,
+      468
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-canvas-girl-1.png": {
+    "size": [
+      451,
+      468
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-canvas-girl-2.png": {
+    "size": [
+      451,
+      468
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-canvas-girl-3.png": {
+    "size": [
+      451,
+      468
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-canvas-girl-4.png": {
+    "size": [
+      451,
+      468
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-canvas-girl-5.png": {
+    "size": [
+      451,
+      468
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-canvas-girl-6.png": {
+    "size": [
+      451,
+      468
+    ],
+    "transparent_rgb": 0
+  },
+  "prop-canvas.png": {
+    "size": [
+      455,
+      466
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-anguirus-boy-0.png": {
+    "size": [
+      451,
+      403
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-anguirus-boy-1.png": {
+    "size": [
+      451,
+      403
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-anguirus-boy-2.png": {
+    "size": [
+      451,
+      403
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-anguirus-boy-3.png": {
+    "size": [
+      451,
+      403
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-anguirus-boy-4.png": {
+    "size": [
+      451,
+      403
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-anguirus-boy-5.png": {
+    "size": [
+      451,
+      403
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-anguirus-boy-6.png": {
+    "size": [
+      451,
+      403
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-anguirus-girl-0.png": {
+    "size": [
+      451,
+      403
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-anguirus-girl-1.png": {
+    "size": [
+      451,
+      403
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-anguirus-girl-2.png": {
+    "size": [
+      451,
+      403
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-anguirus-girl-3.png": {
+    "size": [
+      451,
+      403
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-anguirus-girl-4.png": {
+    "size": [
+      451,
+      403
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-anguirus-girl-5.png": {
+    "size": [
+      451,
+      403
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-anguirus-girl-6.png": {
+    "size": [
+      451,
+      403
+    ],
+    "transparent_rgb": 0
+  },
+  "prop-anguirus.png": {
+    "size": [
+      436,
+      252
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-sand-boy-0.png": {
+    "size": [
+      451,
+      428
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-sand-boy-1.png": {
+    "size": [
+      451,
+      428
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-sand-boy-2.png": {
+    "size": [
+      451,
+      428
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-sand-boy-3.png": {
+    "size": [
+      451,
+      428
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-sand-boy-4.png": {
+    "size": [
+      451,
+      428
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-sand-boy-5.png": {
+    "size": [
+      451,
+      428
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-sand-boy-6.png": {
+    "size": [
+      451,
+      428
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-sand-girl-0.png": {
+    "size": [
+      451,
+      428
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-sand-girl-1.png": {
+    "size": [
+      451,
+      428
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-sand-girl-2.png": {
+    "size": [
+      451,
+      428
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-sand-girl-3.png": {
+    "size": [
+      451,
+      428
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-sand-girl-4.png": {
+    "size": [
+      451,
+      428
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-sand-girl-5.png": {
+    "size": [
+      451,
+      428
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-sand-girl-6.png": {
+    "size": [
+      451,
+      428
+    ],
+    "transparent_rgb": 0
+  },
+  "prop-sand.png": {
+    "size": [
+      418,
+      209
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-tower-boy-0.png": {
+    "size": [
+      344,
+      473
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-tower-boy-1.png": {
+    "size": [
+      344,
+      473
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-tower-boy-2.png": {
+    "size": [
+      344,
+      473
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-tower-boy-3.png": {
+    "size": [
+      344,
+      473
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-tower-boy-4.png": {
+    "size": [
+      344,
+      473
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-tower-boy-5.png": {
+    "size": [
+      344,
+      473
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-tower-boy-6.png": {
+    "size": [
+      344,
+      473
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-tower-girl-0.png": {
+    "size": [
+      344,
+      473
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-tower-girl-1.png": {
+    "size": [
+      344,
+      473
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-tower-girl-2.png": {
+    "size": [
+      344,
+      473
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-tower-girl-3.png": {
+    "size": [
+      344,
+      473
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-tower-girl-4.png": {
+    "size": [
+      344,
+      473
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-tower-girl-5.png": {
+    "size": [
+      344,
+      473
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-tower-girl-6.png": {
+    "size": [
+      344,
+      473
+    ],
+    "transparent_rgb": 0
+  },
+  "prop-tower.png": {
+    "size": [
+      185,
+      477
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-ultraman-boy-0.png": {
+    "size": [
+      451,
+      440
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-ultraman-boy-1.png": {
+    "size": [
+      451,
+      440
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-ultraman-boy-2.png": {
+    "size": [
+      451,
+      440
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-ultraman-boy-3.png": {
+    "size": [
+      451,
+      440
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-ultraman-boy-4.png": {
+    "size": [
+      451,
+      440
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-ultraman-boy-5.png": {
+    "size": [
+      451,
+      440
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-ultraman-boy-6.png": {
+    "size": [
+      451,
+      440
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-ultraman-girl-0.png": {
+    "size": [
+      451,
+      440
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-ultraman-girl-1.png": {
+    "size": [
+      451,
+      440
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-ultraman-girl-2.png": {
+    "size": [
+      451,
+      440
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-ultraman-girl-3.png": {
+    "size": [
+      451,
+      440
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-ultraman-girl-4.png": {
+    "size": [
+      451,
+      440
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-ultraman-girl-5.png": {
+    "size": [
+      451,
+      440
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-ultraman-girl-6.png": {
+    "size": [
+      451,
+      440
+    ],
+    "transparent_rgb": 0
+  },
+  "prop-ultraman.png": {
+    "size": [
+      409,
+      433
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-water-boy-0.png": {
+    "size": [
+      451,
+      413
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-water-boy-1.png": {
+    "size": [
+      451,
+      413
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-water-boy-2.png": {
+    "size": [
+      451,
+      413
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-water-boy-3.png": {
+    "size": [
+      451,
+      413
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-water-boy-4.png": {
+    "size": [
+      451,
+      413
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-water-boy-5.png": {
+    "size": [
+      451,
+      413
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-water-boy-6.png": {
+    "size": [
+      451,
+      413
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-water-girl-0.png": {
+    "size": [
+      451,
+      413
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-water-girl-1.png": {
+    "size": [
+      451,
+      413
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-water-girl-2.png": {
+    "size": [
+      451,
+      413
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-water-girl-3.png": {
+    "size": [
+      451,
+      413
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-water-girl-4.png": {
+    "size": [
+      451,
+      413
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-water-girl-5.png": {
+    "size": [
+      451,
+      413
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-water-girl-6.png": {
+    "size": [
+      451,
+      413
+    ],
+    "transparent_rgb": 0
+  },
+  "prop-water.png": {
+    "size": [
+      445,
+      196
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-dolly-boy-0.png": {
+    "size": [
+      451,
+      467
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-dolly-boy-1.png": {
+    "size": [
+      451,
+      467
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-dolly-boy-2.png": {
+    "size": [
+      451,
+      467
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-dolly-boy-3.png": {
+    "size": [
+      451,
+      467
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-dolly-boy-4.png": {
+    "size": [
+      451,
+      467
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-dolly-boy-5.png": {
+    "size": [
+      451,
+      467
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-dolly-boy-6.png": {
+    "size": [
+      451,
+      467
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-dolly-girl-0.png": {
+    "size": [
+      451,
+      467
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-dolly-girl-1.png": {
+    "size": [
+      451,
+      467
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-dolly-girl-2.png": {
+    "size": [
+      451,
+      467
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-dolly-girl-3.png": {
+    "size": [
+      451,
+      467
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-dolly-girl-4.png": {
+    "size": [
+      451,
+      467
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-dolly-girl-5.png": {
+    "size": [
+      451,
+      467
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-dolly-girl-6.png": {
+    "size": [
+      451,
+      467
+    ],
+    "transparent_rgb": 0
+  },
+  "prop-dolly.png": {
+    "size": [
+      450,
+      471
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-chair-boy-0.png": {
+    "size": [
+      451,
+      418
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-chair-boy-1.png": {
+    "size": [
+      451,
+      418
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-chair-boy-2.png": {
+    "size": [
+      451,
+      418
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-chair-boy-3.png": {
+    "size": [
+      451,
+      418
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-chair-boy-4.png": {
+    "size": [
+      451,
+      418
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-chair-boy-5.png": {
+    "size": [
+      451,
+      418
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-chair-boy-6.png": {
+    "size": [
+      451,
+      418
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-chair-girl-0.png": {
+    "size": [
+      451,
+      418
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-chair-girl-1.png": {
+    "size": [
+      451,
+      418
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-chair-girl-2.png": {
+    "size": [
+      451,
+      418
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-chair-girl-3.png": {
+    "size": [
+      451,
+      418
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-chair-girl-4.png": {
+    "size": [
+      451,
+      418
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-chair-girl-5.png": {
+    "size": [
+      451,
+      418
+    ],
+    "transparent_rgb": 0
+  },
+  "ending-chair-girl-6.png": {
+    "size": [
+      451,
+      418
+    ],
+    "transparent_rgb": 0
+  },
+  "prop-chair.png": {
+    "size": [
+      390,
+      389
+    ],
+    "transparent_rgb": 0
+  },
+  "ground-strip-0.png": {
+    "size": [
+      1536,
+      512
+    ],
+    "transparent_rgb": 0
+  },
+  "ground-strip-1.png": {
+    "size": [
+      1536,
+      512
+    ],
+    "transparent_rgb": 0
+  },
+  "ground-strip-2.png": {
+    "size": [
+      1536,
+      512
+    ],
+    "transparent_rgb": 0
+  },
+  "parallax-day-0.png": {
+    "size": [
+      2048,
+      383
+    ],
+    "transparent_rgb": 0
+  },
+  "parallax-day-1.png": {
+    "size": [
+      2048,
+      265
+    ],
+    "transparent_rgb": 0
+  },
+  "parallax-day-2.png": {
+    "size": [
+      2048,
+      367
+    ],
+    "transparent_rgb": 0
+  },
+  "parallax-sunset-0.png": {
+    "size": [
+      2048,
+      340
+    ],
+    "transparent_rgb": 0
+  },
+  "parallax-sunset-1.png": {
+    "size": [
+      2048,
+      327
+    ],
+    "transparent_rgb": 0
+  },
+  "parallax-sunset-2.png": {
+    "size": [
+      2048,
+      349
+    ],
+    "transparent_rgb": 0
+  },
+  "parallax-night-0.png": {
+    "size": [
+      2048,
+      335
+    ],
+    "transparent_rgb": 0
+  },
+  "parallax-night-1.png": {
+    "size": [
+      2048,
+      335
+    ],
+    "transparent_rgb": 0
+  },
+  "parallax-night-2.png": {
+    "size": [
+      2048,
+      337
+    ],
+    "transparent_rgb": 0
+  },
+  "parallax-moon-0.png": {
+    "size": [
+      2048,
+      341
+    ],
+    "transparent_rgb": 0
+  },
+  "parallax-moon-1.png": {
+    "size": [
+      2048,
+      337
+    ],
+    "transparent_rgb": 0
+  },
+  "parallax-moon-2.png": {
+    "size": [
+      2048,
+      338
+    ],
+    "transparent_rgb": 0
+  },
+  "portrait-boy.png": {
+    "size": [
+      696,
+      996
+    ],
+    "transparent_rgb": 0
+  },
+  "portrait-girl.png": {
+    "size": [
+      614,
+      962
+    ],
+    "transparent_rgb": 0
+  },
+  "opening-hero-boy.png": {
+    "size": [
+      1277,
+      838
+    ],
+    "transparent_rgb": 0
+  },
+  "opening-hero-girl.png": {
+    "size": [
+      1300,
+      771
+    ],
+    "transparent_rgb": 0
+  },
+  "opening-moth.png": {
+    "size": [
+      1300,
+      881
+    ],
+    "transparent_rgb": 0
+  },
+  "opening-rodan.png": {
+    "size": [
+      1300,
+      853
+    ],
+    "transparent_rgb": 0
+  },
+  "opening-gamera.png": {
+    "size": [
+      1300,
+      936
+    ],
+    "transparent_rgb": 0
+  },
+  "opening-godzilla.png": {
+    "size": [
+      1300,
+      926
+    ],
+    "transparent_rgb": 0
+  },
+  "opening-gillas.png": {
+    "size": [
+      1300,
+      927
+    ],
+    "transparent_rgb": 0
+  },
+  "opening-ghidorah.png": {
+    "size": [
+      1300,
+      885
+    ],
+    "transparent_rgb": 0
+  },
+  "opening-anguirus.png": {
+    "size": [
+      1300,
+      902
+    ],
+    "transparent_rgb": 0
+  }
+}

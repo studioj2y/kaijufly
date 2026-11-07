@@ -57,8 +57,10 @@ const assert=require('assert/strict');
  const high=await page.evaluate(()=>{
    const g=window.__KAIJU__,s=g.S;g.startGame('distance',0);s.frozen=true;s.phase='flying';
    s.j.y=1005;s.camY=980;s.j.x=0;s.camX=0;g.ensureWorld();
-   const visible=s.air.find(e=>e.y>990&&e.y<1020&&e.x>20);s.camX=visible.x-25;s.j.x=s.camX;
-   g.render();return {height:s.j.y,props:s.air.filter(e=>e.y>980&&e.y<1040).length};
+   const visible=s.air.find(e=>e.y>950&&e.y<1100&&e.x>20);
+   if(!visible)throw new Error('No encounters generated around 1000 m');
+   s.camX=visible.x-25;s.j.x=s.camX;s.j.y=visible.y;s.camY=visible.y-25;
+   g.render();return {height:s.j.y,props:s.air.filter(e=>e.y>950&&e.y<1100).length};
  });
  assert.ok(high.props>0);await page.screenshot({path:'art_prototypes/revision4/qa-high-altitude.png'});
  // A missing asset must still render its fallback without a runtime error.

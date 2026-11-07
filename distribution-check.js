@@ -42,7 +42,7 @@ assert.ok(s.air.filter(e=>e.y>=30&&e.y<80).some(e=>e.hit),'Revisiting a row pres
 const density={low:0,first:0};
 for(let seed=1;seed<=120;seed++){
  const {game:g}=createGame(seed);g.startGame('distance',0);
- density.low+=g.S.air.filter(e=>e.y>=14&&e.y<30).length;
+ density.low+=g.S.air.filter(e=>!['oilrig','gillas'].includes(e.type)&&e.y>=14&&e.y<30).length;
  density.first+=g.S.air.filter(e=>e.y>=30&&e.y<80).length;
 }
 assert.ok(density.low<density.first*.35,'Under 30 m must be sparse');

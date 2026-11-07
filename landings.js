@@ -4,11 +4,11 @@
 
 const TOKUSATSU_LANDINGS = {
   anguirus: {
-    name: '挂上安吉拉斯的背甲尖刺',
-    head: '刺甲巨兽立大功！短裤遭遇重大危机',
+    name: '坐上安吉拉斯的背甲',
+    head: '巨兽临时坐骑！背甲上多了一位见学客',
     bonus: 80,
     face: '>///<',
-    note: '安吉拉斯一动不敢动，小朋友满脸通红却还在傻笑。',
+    note: '安吉拉斯停下脚步，小朋友扶着背甲，不好意思地挥了挥手。',
     missionName: '安吉拉斯'
   },
   canvas: {
