@@ -37,7 +37,7 @@
   // Load the opening first, so selecting a visitor never waits for all endings.
   const opening = { 'opening-background': revision + 'opening-background.jpg' };
   ['boy', 'girl'].forEach(name => {
-    opening['opening-hero-' + name] = revision + 'opening-hero-' + name + '.png';
+    opening['opening-hero-' + name] = 'art_prototypes/revision7/opening-hero-' + name + '.png';
   });
   ['moth', 'rodan', 'gamera', 'godzilla', 'gillas', 'ghidorah', 'anguirus'].forEach(name => {
     opening['opening-' + name] = revision + 'opening-' + name + '.png';

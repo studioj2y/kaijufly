@@ -1,0 +1,20 @@
+{
+  "boy": {
+    "dimensions": [
+      1277,
+      838
+    ],
+    "alpha_preserved": true,
+    "outside_face_unchanged": true,
+    "edited_pixels": 3767
+  },
+  "girl": {
+    "dimensions": [
+      1300,
+      771
+    ],
+    "alpha_preserved": true,
+    "outside_face_unchanged": true,
+    "edited_pixels": 2890
+  }
+}
