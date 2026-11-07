@@ -20,7 +20,7 @@
 
   // 空中特摄道具池 (包含拉顿、摩斯拉、基拉斯旋转等)
   const AIR_TYPES = [
-    'cloud', 'rodan', 'mothra', 'balloon', 'plane',
+    'cloud', 'rodan', 'mothra', 'gamera', 'plane',
     'gillas', 'oilrig', 'chili', 'can', 'birds'
   ];
 
@@ -38,10 +38,10 @@
     cloud: '引力射线',
     rodan: '拉顿超音速破空',
     mothra: '摩斯拉神圣鳞粉',
-    balloon: '哥斯拉肚腩弹跳',
+    gamera: '加美拉旋转飞行',
     plane: '特搜战机喷射加速',
     gillas: '吉拉斯相抱旋风',
-    oilrig: '蓝色原子吐息爆发',
+    oilrig: '哥斯拉仰天吐息',
     chili: '骑士推进糖果',
     can: '特摄能量果汁',
     birds: '小巴尔坦道具连击',
@@ -58,7 +58,7 @@
     cloud: '金色引力射线！充能完成！',
     rodan: '飞得比喷气机还快！',
     mothra: '治愈鳞粉！补给到啦！',
-    balloon: '巨兽肚皮太有弹性啦！',
+    gamera: '蓝焰旋转！搭上加美拉的气流！',
     plane: '战机尾流带我冲！',
     gillas: '两位抱紧啦！旋风开拍！',
     oilrig: '原子光线直冲云霄！',
@@ -112,7 +112,7 @@
     phase: 'menu', mode: 'distance', t: 0, frame: 0, angle: 45, power: 60, aimT: 0, powerT: 0,
     j: { x: 0, y: 0, vx: 0, vy: 0, energy: 100, arm: 0 },
     holding: false, dist: 0, bonus: 0, combo: 0, comboTimer: 0, events: {}, stage: 1, skids: 0,
-    air: [], ground: [], genX: 0, camX: 0, camY: 0, shake: 0, flash: 0, skeleton: 0, stun: 0, spin: 0,
+    air: [], airCells: new Map(), ground: [], genX: 0, camX: 0, camY: 0, shake: 0, flash: 0, skeleton: 0, stun: 0, spin: 0,
     carried: 0, carryType: null,
     particles: [], landingType: 'sand', landingT: 0, landingObj: null, mission: null, missionIdx: 0, missionOk: false,
     muted: false, best: { dist: 0, score: 0 }, frozen: false, testMode: false, shotMode: null, seed: 1
@@ -164,10 +164,10 @@
       case 'cloud': return [22, 10];
       case 'rodan': return [16, 7];
       case 'mothra': return [16, 8];
-      case 'balloon': return [12, 13];
+      case 'gamera': return [17, 11];
       case 'plane': return [14, 6];
       case 'gillas': return [16, 18];
-      case 'oilrig': return [9, 16];
+      case 'oilrig': return [15, 26];
       case 'chili': return [4, 4];
       case 'can': return [4, 4];
       case 'birds': return [10, 5];
@@ -208,27 +208,20 @@
     const r = rnd32(S.seed + Math.floor(start / CHUNK) * 7919 + 13);
     const dist = start / 1.5;
 
-    // 稀疏但持续的互动；飞得更远不应自动获得更密集的续命道具。
-    let airN = 1 + Math.floor(r() * 2);
     let facN = r() < 0.4 ? 1 : 0;
 
     if (dist >= 800 && dist < 2200) {
-      airN = 2 + Math.floor(r() * 2);
       facN = r() < 0.55 ? 1 : 0;
     } else if (dist >= 2200 && dist < 4200) {
-      airN = 2 + Math.floor(r() * 2);
       facN = r() < 0.5 ? 1 : 0;
     } else if (dist >= 4200) {
-      airN = 1 + Math.floor(r() * 2);
       facN = r() < 0.35 ? 1 : 0;
     }
 
-    const extra = airN * level('density') * 0.2;
-    airN += Math.floor(extra) + (r() < extra % 1 ? 1 : 0);
-    // 生成空中道具
-    for (let i = 0; i < airN; i++) {
-      const encounter = window.kaijuAirDistribution.sample(r);
-      S.air.push(makeEnt(encounter.type, start + 12 + r() * (CHUNK - 24), encounter.y, r));
+    // Rooted monster set pieces are separate from airborne altitude rows.
+    if (r() < 0.22) {
+      const type = r() < 0.5 ? 'gillas' : 'oilrig';
+      S.air.push(makeEnt(type, start + 20 + r() * (CHUNK - 40), type === 'oilrig' ? 13 : 9, r));
     }
 
     // 生成地面交互设施 (弹力蹦床、纸板大楼、原子喷口、剧组便当、滑轨车)
@@ -246,13 +239,45 @@
     }
   }
 
+  function ensureAirWorld() {
+    const distribution = window.kaijuAirDistribution;
+    // Generate only the current view plus a 50 m vertical buffer. Rows above
+    // 230 m repeat the cloud-dominant weights, with no ceiling or density drop.
+    const firstRow = distribution.rowForHeight(Math.max(0, S.camY - H * 0.2 / PPM - 50));
+    const lastRow = distribution.rowForHeight(S.camY + H * 0.8 / PPM + 50);
+    const firstChunk = Math.max(0, Math.floor((S.camX - W * 0.28 / PPM - CHUNK) / CHUNK));
+    const lastChunk = Math.min(Math.ceil(S.genX / CHUNK), Math.ceil((S.camX + W / PPM + CHUNK * 3) / CHUNK));
+    for (let chunk = firstChunk; chunk < lastChunk; chunk++) {
+      for (let row = firstRow; row <= lastRow; row++) {
+        const key = chunk + ':' + row;
+        if (S.airCells.has(key)) continue;
+        S.airCells.set(key, chunk);
+        const r = rnd32(S.seed + Math.imul(chunk, 7919) + Math.imul(row + 1, 104729) + 97);
+        const dist = chunk * CHUNK / 1.5;
+        let count = (dist >= 800 && dist < 4200 ? 2 : 1) + Math.floor(r() * 2);
+        const extra = count * level('density') * 0.2;
+        count += Math.floor(extra) + (r() < extra % 1 ? 1 : 0);
+        // Wider vertical coverage must not multiply automatic refill chains.
+        const sparseCount = count * 0.35;
+        count = Math.floor(sparseCount) + (r() < sparseCount % 1 ? 1 : 0);
+        // Ground props already supply interactions below 30 m.
+        if (row === 0) count = r() < 0.08 + level('density') * 0.025 ? 1 : 0;
+        for (let i = 0; i < count; i++) {
+          const encounter = distribution.sample(r, row);
+          S.air.push(makeEnt(encounter.type, chunk * CHUNK + 12 + r() * (CHUNK - 24), encounter.y, r));
+        }
+      }
+    }
+  }
+
   function buildWorld() {
-    S.air = []; S.ground = []; S.genX = 0;
+    S.air = []; S.airCells = new Map(); S.ground = []; S.genX = 0;
     S.seed = Math.floor(Math.random() * 1e6) + 1;
     for (let i = 0; i < 7; i++) {
       genChunk(S.genX);
       S.genX += CHUNK;
     }
+    ensureAirWorld();
   }
 
   function ensureWorld() {
@@ -267,7 +292,11 @@
       const oldestVisibleX = S.camX - W * 0.28 / PPM - CHUNK;
       S.air = S.air.filter(e => e.x + e.w / 2 >= oldestVisibleX);
       S.ground = S.ground.filter(g => g.x + g.w / 2 >= oldestVisibleX);
+      const oldestChunk = Math.max(0, Math.floor(oldestVisibleX / CHUNK));
+      for (const [key, chunk] of S.airCells) if (chunk < oldestChunk) S.airCells.delete(key);
     }
+    // Also runs when climbing inside already generated horizontal chunks.
+    ensureAirWorld();
   }
 
   // ---------------- 粒子与弹幕提示 ----------------
@@ -411,12 +440,12 @@
         addStunt('mothra', 180);
         break;
 
-      case 'balloon':
-        // 哥斯拉软胶大肚腩！DUANG 地高高弹起！
+      case 'gamera':
+        // 加美拉收壳旋转，蓝色喷流把见学者托向上方。
         j.vy = 33; j.vx *= 1.08; S.shake = 6;
-        puff(e.x, e.y, 20, '#69db7c', 14);
-        window.kaijuAudio.play('boing');
-        addStunt('balloon', 110);
+        puff(e.x, e.y, 20, '#74c0fc', 14);
+        window.kaijuAudio.play('beam');
+        addStunt('gamera', 110);
         break;
 
       case 'plane':
@@ -1349,16 +1378,15 @@
       if (sx > -200 && sx < W + 200 && sy > -300 && sy < H + 300) {
         ctx.globalAlpha = e.hit ? 0.3 : 1;
         const artName = e.type === 'mothra' ? 'moth' : e.type;
-        const airArt = window.kaijuArt && (['moth', 'rodan', 'gillas', 'cloud'].includes(artName) ? window.kaijuArt.frame(artName, S.t + e.ph) : window.kaijuArt.get(artName));
+        const airArt = window.kaijuArt && (['moth', 'rodan', 'gillas', 'cloud', 'gamera', 'oilrig'].includes(artName) ? window.kaijuArt.frame(artName, S.t + e.ph) : window.kaijuArt.get(artName));
         if (airArt) {
           const wingRoom = ['moth', 'rodan'].includes(artName) ? 1.6 : 1;
           const scale = Math.min(e.w * PPM / airArt.width, e.h * PPM * wingRoom / airArt.height);
           const dw = airArt.width * scale, dh = airArt.height * scale;
           ctx.save();
-          ctx.translate(sx + Math.sin(S.t * 1.4 + e.ph) * 3, sy + Math.sin(S.t * 2 + e.ph) * 4);
-          ctx.rotate(Math.sin(S.t * 1.7 + e.ph) * 0.025);
-          const beat = Math.sin((S.t + e.ph) * Math.PI * 2);
-          if (['oilrig', 'balloon'].includes(artName)) ctx.scale(1 + beat * 0.025, 1 - beat * 0.025);
+          const rooted = ['oilrig', 'gillas'].includes(artName);
+          ctx.translate(sx + (rooted ? 0 : Math.sin(S.t * 1.4 + e.ph) * 3), rooted ? wy(0) - dh / 2 : sy + Math.sin(S.t * 2 + e.ph) * 4);
+          if (!rooted) ctx.rotate(Math.sin(S.t * 1.7 + e.ph) * 0.025);
           ctx.drawImage(airArt, -dw / 2, -dh / 2, dw, dh);
           ctx.restore();
         } else {
@@ -1595,6 +1623,6 @@
   window.__KAIJU__ = {
     S: S, step: step, press: press, release: release,
     startGame: startGame, hit: hit, doLanding: doLanding,
-    showResult: showResult, render: render, runTests: runTests
+    showResult: showResult, render: render, runTests: runTests, ensureWorld: ensureWorld
   };
 })();

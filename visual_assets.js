@@ -6,13 +6,13 @@
     stage2: 'art_prototypes/full_assets/stage2.webp',
     stage3: 'art_prototypes/full_assets/stage3.webp',
     stage4: 'art_prototypes/full_assets/stage4.webp',
-    moth: 'art_prototypes/revision3/moth-frame-0.webp',
-    rodan: 'art_prototypes/revision3/rodan-frame-0.webp',
-    balloon: 'art_prototypes/full_assets/balloon.webp',
+    moth: 'art_prototypes/revision4/moth-frame-0.png',
+    rodan: 'art_prototypes/revision4/rodan-frame-0.png',
+    gamera: 'art_prototypes/revision4/gamera-frame-0.png',
     plane: 'art_prototypes/revision2/plane-right.webp',
-    cloud: 'art_prototypes/revision3/cloud-frame-0.webp',
-    gillas: 'art_prototypes/revision3/gillas-frame-0.webp',
-    oilrig: 'art_prototypes/full_assets/oilrig.webp',
+    cloud: 'art_prototypes/revision4/cloud-frame-0.png',
+    gillas: 'art_prototypes/revision4/gillas-frame-0.png',
+    oilrig: 'art_prototypes/revision4/oilrig-frame-0.png',
     chili: 'art_prototypes/full_assets/chili.webp',
     can: 'art_prototypes/full_assets/can.webp',
     birds: 'art_prototypes/full_assets/birds.webp',
@@ -34,15 +34,37 @@
     camera: 'art_prototypes/full_assets/camera.webp'
   };
   const images = {};
-  ['boy', 'girl', 'moth', 'rodan', 'gillas', 'cloud'].forEach(name => {
-    for (let frame = 0; frame < 7; frame++) files[name + 'Frame' + frame] = 'art_prototypes/revision3/' + name + '-frame-' + frame + '.webp';
+  ['boy', 'girl', 'moth', 'rodan', 'gillas', 'cloud', 'gamera', 'oilrig'].forEach(name => {
+    for (let frame = 0; frame < 7; frame++) files[name + 'Frame' + frame] = 'art_prototypes/revision4/' + name + '-frame-' + frame + '.png';
   });
   if (typeof Image !== 'undefined') {
+    const byPath = new Map(), queue = [];
     Object.keys(files).forEach(name => {
+      const path = files[name];
+      if (byPath.has(path)) { images[name] = byPath.get(path); return; }
       const image = new Image();
-      image.src = files[name];
       images[name] = image;
+      byPath.set(path, image);
+      queue.push({image, path});
     });
+    // Share static/first-frame images and bound parallel decoding. A transient
+    // read/decode failure gets one fresh request instead of a permanent hole.
+    let active = 0, next = 0;
+    function pump() {
+      while (active < 6 && next < queue.length) {
+        const {image, path} = queue[next++];
+        active++;
+        let retried = false;
+        const done = () => { image.onload = image.onerror = null; active--; pump(); };
+        image.onload = done;
+        image.onerror = () => {
+          if (!retried) { retried = true; image.src = path + '?retry=1'; }
+          else done();
+        };
+        image.src = path;
+      }
+    }
+    pump();
   }
   window.kaijuArt = {
     character: 'boy',

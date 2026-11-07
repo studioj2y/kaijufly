@@ -237,7 +237,7 @@ function drawTokusatsuAirEntity(ctx, e, sx, sy, PPM, time) {
   ctx.translate(sx, sy);
 
   // 绝妙细节：绝大多数特摄飞行模型都隐约连着两根细细的【摄影威亚钢丝】！
-  if (['rodan', 'mothra', 'plane', 'balloon'].includes(e.type)) {
+  if (['rodan', 'mothra', 'plane', 'gamera'].includes(e.type)) {
     ctx.save();
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
     ctx.lineWidth = 1.2;
@@ -414,32 +414,18 @@ function drawTokusatsuAirEntity(ctx, e, sx, sy, PPM, time) {
     }
 
     // ------------------------------------------------------------------------
-    // ④ 哥斯拉大肚腩 (Godzilla Belly)：软胶巨兽躺平大肚皮弹簧床！
+    // ④ 加美拉收壳旋转飞行（素材未加载时的简化回退）
     // ------------------------------------------------------------------------
-    case 'balloon': {
-      // 哥斯拉深绿橡胶背棘与四肢
-      ctx.fillStyle = '#2b4c3f';
-      ctx.beginPath();
-      ctx.ellipse(0, -py * 0.15, px * 0.42, py * 0.32, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // 巨大圆滚滚、软胶充气感十足的黄色/灰绿肚皮！
-      ctx.fillStyle = '#85a38a';
-      ctx.beginPath();
-      ctx.ellipse(0, -py * 0.18, px * 0.28, py * 0.25, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // 肚皮纹理圈
-      ctx.strokeStyle = '#5a7863';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.ellipse(0, -py * 0.18, px * 0.2, py * 0.18, 0, 0, Math.PI * 2);
-      ctx.stroke();
-
-      // 正在中场闭眼睡觉呼呼的呆萌表情
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 12px sans-serif';
-      ctx.fillText('Zzz...', px * 0.2, -py * 0.38);
+    case 'gamera': {
+      ctx.save();ctx.scale(1,0.65);ctx.rotate(time*6.28);
+      for(let i=0;i<4;i++){
+        ctx.rotate(Math.PI/2);ctx.fillStyle='#75bad6';ctx.beginPath();
+        ctx.moveTo(px*.25,-px*.04);ctx.lineTo(px*.48,-px*.12);ctx.lineTo(px*.3,px*.06);ctx.fill();
+      }
+      ctx.fillStyle='#3c4a43';ctx.strokeStyle='#b0a58c';ctx.lineWidth=2;
+      ctx.beginPath();ctx.ellipse(0,0,px*.3,px*.28,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+      for(let i=0;i<6;i++){ctx.rotate(Math.PI/3);ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(px*.28,0);ctx.stroke();}
+      ctx.restore();
       break;
     }
 

@@ -45,5 +45,6 @@ for (const rank of [0,3]) for (const strategy of ['none','hold','low-altitude'])
   const sorted=samples.map(s=>s.distance).sort((a,b)=>a-b);
   summary.push({rank,strategy,finished:samples.filter(s=>s.phase==='result').length,medianDistance:Math.round((sorted[5]+sorted[6])/2),maxDistance:sorted[11],maxSeconds:Math.max(...samples.map(s=>s.seconds)),maxEntities:Math.max(...samples.map(s=>s.air+s.ground))});
   if(strategy==='none') assert.equal(samples.filter(s=>s.phase==='result').length,12);
+  if(rank===0&&strategy==='hold') assert.equal(samples.filter(s=>s.phase==='result').length,12,'Base loadout must not sustain a hands-off held button indefinitely');
 }
 console.log(JSON.stringify({pass:true,summary},null,2));

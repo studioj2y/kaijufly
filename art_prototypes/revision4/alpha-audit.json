@@ -1,0 +1,498 @@
+{
+  "previous_hidden_rgb": {
+    "boy-0": 44277,
+    "boy-1": 49429,
+    "boy-2": 48890,
+    "boy-3": 58405,
+    "boy-4": 45509,
+    "boy-5": 54304,
+    "boy-6": 43783,
+    "girl-0": 26383,
+    "girl-1": 30818,
+    "girl-2": 32679,
+    "girl-3": 59105,
+    "girl-4": 30421,
+    "girl-5": 38808,
+    "girl-6": 26033,
+    "moth-0": 78455,
+    "moth-1": 74535,
+    "moth-2": 44596,
+    "moth-3": 34877,
+    "moth-4": 70120,
+    "moth-5": 73848,
+    "moth-6": 48478,
+    "rodan-0": 72329,
+    "rodan-1": 59132,
+    "rodan-2": 45144,
+    "rodan-3": 39811,
+    "rodan-4": 56997,
+    "rodan-5": 59242,
+    "rodan-6": 65190
+  },
+  "exported": {
+    "boy-frame-0.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        512,
+        380
+      ]
+    },
+    "boy-frame-1.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        512,
+        380
+      ]
+    },
+    "boy-frame-2.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        512,
+        380
+      ]
+    },
+    "boy-frame-3.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        512,
+        380
+      ]
+    },
+    "boy-frame-4.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        512,
+        380
+      ]
+    },
+    "boy-frame-5.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        512,
+        380
+      ]
+    },
+    "boy-frame-6.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        512,
+        380
+      ]
+    },
+    "girl-frame-0.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        445,
+        380
+      ]
+    },
+    "girl-frame-1.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        445,
+        380
+      ]
+    },
+    "girl-frame-2.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        445,
+        380
+      ]
+    },
+    "girl-frame-3.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        445,
+        380
+      ]
+    },
+    "girl-frame-4.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        445,
+        380
+      ]
+    },
+    "girl-frame-5.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        445,
+        380
+      ]
+    },
+    "girl-frame-6.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        445,
+        380
+      ]
+    },
+    "moth-frame-0.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        461,
+        413
+      ]
+    },
+    "moth-frame-1.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        461,
+        413
+      ]
+    },
+    "moth-frame-2.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        461,
+        413
+      ]
+    },
+    "moth-frame-3.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        461,
+        413
+      ]
+    },
+    "moth-frame-4.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        461,
+        413
+      ]
+    },
+    "moth-frame-5.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        461,
+        413
+      ]
+    },
+    "moth-frame-6.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        461,
+        413
+      ]
+    },
+    "rodan-frame-0.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        408,
+        421
+      ]
+    },
+    "rodan-frame-1.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        408,
+        421
+      ]
+    },
+    "rodan-frame-2.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        408,
+        421
+      ]
+    },
+    "rodan-frame-3.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        408,
+        421
+      ]
+    },
+    "rodan-frame-4.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        408,
+        421
+      ]
+    },
+    "rodan-frame-5.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        408,
+        421
+      ]
+    },
+    "rodan-frame-6.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        408,
+        421
+      ]
+    },
+    "cloud-frame-0.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        512,
+        512
+      ]
+    },
+    "cloud-frame-1.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        512,
+        512
+      ]
+    },
+    "cloud-frame-2.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        512,
+        512
+      ]
+    },
+    "cloud-frame-3.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        512,
+        512
+      ]
+    },
+    "cloud-frame-4.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        512,
+        512
+      ]
+    },
+    "cloud-frame-5.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        512,
+        512
+      ]
+    },
+    "cloud-frame-6.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        512,
+        512
+      ]
+    },
+    "gillas-frame-0.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        466,
+        459
+      ]
+    },
+    "gillas-frame-1.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        466,
+        459
+      ]
+    },
+    "gillas-frame-2.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        466,
+        459
+      ]
+    },
+    "gillas-frame-3.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        466,
+        459
+      ]
+    },
+    "gillas-frame-4.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        466,
+        459
+      ]
+    },
+    "gillas-frame-5.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        466,
+        459
+      ]
+    },
+    "gillas-frame-6.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        466,
+        459
+      ]
+    },
+    "gamera-frame-0.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        512,
+        342
+      ]
+    },
+    "gamera-frame-1.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        512,
+        342
+      ]
+    },
+    "gamera-frame-2.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        512,
+        342
+      ]
+    },
+    "gamera-frame-3.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        512,
+        342
+      ]
+    },
+    "gamera-frame-4.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        512,
+        342
+      ]
+    },
+    "gamera-frame-5.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        512,
+        342
+      ]
+    },
+    "gamera-frame-6.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        512,
+        342
+      ]
+    },
+    "oilrig-frame-0.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        367,
+        484
+      ]
+    },
+    "oilrig-frame-1.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        367,
+        484
+      ]
+    },
+    "oilrig-frame-2.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        367,
+        484
+      ]
+    },
+    "oilrig-frame-3.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        367,
+        484
+      ]
+    },
+    "oilrig-frame-4.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        367,
+        484
+      ]
+    },
+    "oilrig-frame-5.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        367,
+        484
+      ]
+    },
+    "oilrig-frame-6.png": {
+      "hidden_rgb": 0,
+      "key_color": 0,
+      "size": [
+        367,
+        484
+      ]
+    }
+  },
+  "removed_detached_pixels": {
+    "boy-0": 0,
+    "boy-1": 5,
+    "boy-2": 495,
+    "boy-3": 0,
+    "boy-4": 0,
+    "boy-5": 0,
+    "boy-6": 0,
+    "girl-0": 28,
+    "girl-1": 0,
+    "girl-2": 5,
+    "girl-3": 5,
+    "girl-4": 5,
+    "girl-5": 0,
+    "girl-6": 24
+  }
+}
