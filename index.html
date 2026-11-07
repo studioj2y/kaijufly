@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>KAIJU FLY - 怪兽飞天 · 特摄片场大冒险</title>
-<link rel="stylesheet" href="style.css?v=6">
+<link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
 <div id="stage">
@@ -55,7 +55,7 @@
           ③ 出炮后 <b>按住不放</b>：小朋友像小鸟一样拼命挥舞手臂爬升微调，<b>消耗体力</b>；松开进入轻盈滑翔。飞得过陡会失速！<br>
           <b>R</b> 重新发射　<b>Esc</b> 返回片场大门
         </details>
-        <div class="btns"><button id="openWorkshop">片场工坊 · 解锁与配置</button><button id="changeCharacter">更换主角</button></div>
+        <div class="btns"><button id="openWorkshop">片场工坊 · 解锁与配置</button><button data-open-album>见学画廊 · 合影收藏</button><button id="changeCharacter">更换主角</button></div>
       </div>
     </div>
 
@@ -75,6 +75,7 @@
         <p id="runReward" class="reward"></p>
         <div class="btns">
           <button id="resultWorkshop">解锁与配置</button>
+          <button data-open-album>查看见学画廊</button>
           <button id="again">再发射一次！</button>
           <button id="nextMission" class="hidden">下一部通告</button>
           <button id="backMenu">返回片场大门</button>
@@ -100,6 +101,7 @@
         <p id="paperReward" class="reward"></p>
         <div class="btns">
           <button id="paperNext">进入下一场拍摄</button>
+          <button data-open-album>查看见学画廊</button>
           <button id="paperMenu">返回片场大门</button>
         </div>
       </div>
@@ -130,19 +132,39 @@
   </div>
 </div>
 
+<dialog id="photoScene" aria-labelledby="photoTitle" data-shot="posing">
+  <div class="photo-viewfinder"><span id="photoStatus" role="status">靠近一点，看镜头！</span><span class="photo-rec">STUDIO MEMORY</span></div>
+  <figure class="souvenir-print">
+    <div class="photo-window"><img id="photoImage" alt="主角与特摄要素的见学合影"><canvas id="photoAction" width="700" height="700" aria-label="短暂的特摄互动演出"></canvas><i class="photo-flash"></i></div>
+    <figcaption><h2 id="photoTitle"></h2><p id="photoNote"></p></figcaption>
+  </figure>
+  <p id="photoSaved" role="status"></p>
+  <button id="resumePhoto" disabled>继续见学 · 自动接着飞</button>
+</dialog>
+<dialog id="albumDialog" aria-labelledby="albumHeading">
+  <header class="album-header"><div><small>STUDIO MEMORIES</small><h2 id="albumHeading">见学纪念画廊</h2></div><button id="closeAlbum">返回游戏</button></header>
+  <div id="albumBrowse">
+    <p id="albumCount"></p>
+    <div class="album-filters"><label>照片 <select id="albumKind"><option value="all">全部纪念</option><option value="interaction">互动合影</option><option value="ending">收场合影</option></select></label><label>主角 <select id="albumGender"><option value="all">两位主角</option><option value="boy">红帽男生</option><option value="girl">风镜女生</option></select></label></div>
+    <p id="albumSave"></p><div id="albumGrid"></div>
+  </div>
+  <div id="albumDetail" hidden><button id="albumBack">← 回到相册</button><figure class="album-full"><img id="albumImage" alt="已收藏的见学纪念照片"><figcaption><h3 id="albumTitle"></h3><p id="albumNote"></p><small id="albumMeta"></small></figcaption></figure></div>
+</dialog>
+
 <!-- 测试输出隐藏节点 -->
 <pre id="test-out" style="display:none"></pre>
 
 <!-- 模块化脚本加载 -->
 <script src="audio.js"></script>
 <script src="landings.js?v=6"></script>
-<script src="entities.js"></script>
-<script src="visual_assets.js?v=7.1"></script>
+<script src="entities.js?v=8"></script>
+<script src="visual_assets.js?v=8"></script>
 <script src="progression.js"></script>
 <script src="air_distribution.js"></script>
-<script src="art_prototypes/revision6/manifest.js?v=6"></script>
+<script src="art_prototypes/revision8/manifest.js?v=8"></script>
 <script src="world_layout.js"></script>
 <script src="scene_art.js?v=6"></script>
-<script src="game.js?v=6"></script>
+<script src="souvenirs.js?v=8"></script>
+<script src="game.js?v=8"></script>
 </body>
 </html>

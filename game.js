@@ -43,7 +43,7 @@
     gillas: '吉拉斯相抱旋风',
     oilrig: '哥斯拉仰天吐息',
     chili: '骑士推进糖果',
-    can: '特摄能量果汁',
+    can: '奥特曼彩色计时器',
     birds: '小巴尔坦道具连击',
     // 地面交互设施专属标签
     trampoline: '特摄橡胶肚腩大弹跳',
@@ -63,7 +63,7 @@
     gillas: '两位抱紧啦！旋风开拍！',
     oilrig: '原子光线直冲云霄！',
     chili: '屁股喷出彩色火焰！',
-    can: '喝一口满血复活！',
+    can: '彩色计时器亮起！光能补充！',
     birds: '好多迷你小宇宙人！',
     trampoline: 'DUANG~弹到云彩上面啦！',
     building: '大厦爆碎！特摄烟火太炫了！',
@@ -371,6 +371,8 @@
   }
 
   function startGame(mode, missionIdx) {
+    if (S.phase === 'photo') $('photoScene')?.close?.();
+    S.photo = null;
     $('skipOpening').classList.add('hidden');
     $('characterSelect').classList.add('hidden');
     S.flapStartedAt = 0;
@@ -434,6 +436,7 @@
     toast(STUNT_LABEL[k] + ' +' + awardedScore);
     mug('^o^', STUNT_MUG[k] || '特技镜头太帅啦！');
     updateHUD();
+    if (S.events[k] === 1) window.kaijuAlbum?.begin(S, k);
   }
 
   function hit(e) {
@@ -519,7 +522,7 @@
         break;
 
       case 'can':
-        // M87 剧组能量便当/果汁补充
+        // 奥特曼彩色计时器补充光能。
         j.energy = Math.min(maxEnergy(), j.energy + 45);
         puff(e.x, e.y, 16, '#22b8cf', 10);
         window.kaijuAudio.play('pickup');
@@ -547,7 +550,7 @@
       const hitW = e.type === 'cloud' ? 18 : e.w, hitH = e.type === 'cloud' ? 9 : e.h;
       if (Math.abs(e.x - j.x) < hitW / 2 + 2.0 && Math.abs(e.y - j.y) < hitH / 2 + 2.0) {
         hit(e);
-        if (S.whirl) return;
+        if (S.whirl || S.phase !== 'flying') return;
       }
     }
   }
@@ -724,6 +727,7 @@
 
   function showResult() {
     S.phase = 'result'; S.frozen = false;
+    if (!S.testMode) window.kaijuAlbum?.collect('ending', S.landingType, S.character || 'boy', S.dist);
     const dist = Math.round(S.dist);
     const L = window.TOKUSATSU_LANDINGS[S.landingType] || window.TOKUSATSU_LANDINGS['sand'];
     const score = dist + S.bonus + L.bonus;
@@ -816,6 +820,8 @@
 
   // ---------------- 物理模拟核心 (60 FPS 步进) ----------------
   function step(dt) {
+    if (window.kaijuAlbum?.isOpen()) return;
+    if (S.phase === 'photo') { window.kaijuAlbum?.tick(S, dt); return; }
     S.t += dt; S.frame++;
 
     // 粒子模拟
@@ -998,8 +1004,9 @@
 
     if (S.carried <= 0) {
       checkCollisions();
-      if (S.whirl) return;
+      if (S.whirl || S.phase !== 'flying') return;
       checkGroundFacilities();
+      if (S.phase !== 'flying') return;
     }
 
     if (j.y <= 0 && j.vy <= 0 && S.carried <= 0) {
@@ -1027,6 +1034,8 @@
 
   // ---------------- 纯一键输入绑定 ----------------
   function press() {
+    if (window.kaijuAlbum?.isOpen()) return;
+    if (S.phase === 'photo') { window.kaijuAlbum?.finish(S); return; }
     window.kaijuAudio.ensure();
     if (S.frozen) return;
     switch (S.phase) {
@@ -1091,8 +1100,14 @@
   }
 
   function bind() {
+    window.kaijuAlbum?.bind(() => S);
     window.addEventListener('resize', resize);
     window.addEventListener('keydown', (e) => {
+      if (window.kaijuAlbum?.isOpen()) return;
+      if (S.phase === 'photo') {
+        if (!e.repeat && [' ', 'Enter', 'Escape', '5'].includes(e.key)) { e.preventDefault(); window.kaijuAlbum?.finish(S); }
+        return;
+      }
       if (S.phase === 'character') return;
       if (S.phase === 'intro') {
         if (e.repeat) return;
@@ -1435,7 +1450,7 @@
       if (sx > -200 && sx < W + 200 && sy > -300 && sy < H + 300) {
         ctx.globalAlpha = e.hit && S.whirl?.entity !== e ? 0.3 : 1;
         const artName = e.type === 'mothra' ? 'moth' : e.type;
-        const airArt = window.kaijuArt && (['moth', 'rodan', 'gillas', 'cloud', 'gamera', 'oilrig'].includes(artName) ? window.kaijuArt.frame(artName, S.t + e.ph) : window.kaijuArt.get(artName));
+        const airArt = window.kaijuArt && (['moth', 'rodan', 'gillas', 'cloud', 'gamera', 'oilrig', 'can'].includes(artName) ? window.kaijuArt.frame(artName, S.t + e.ph) : window.kaijuArt.get(artName));
         if (airArt) {
           const wingRoom = ['moth', 'rodan'].includes(artName) ? 1.6 : 1;
           const scale = Math.min(e.w * PPM / airArt.width, e.h * PPM * wingRoom / airArt.height);
@@ -1471,7 +1486,7 @@
 
     // 绘制主角小朋友
     const jx = wx(S.j.x), jy = wy(S.j.y);
-    if (S.phase === 'flying' || S.phase === 'landing') {
+    if (S.phase === 'flying' || S.phase === 'landing' || S.phase === 'photo') {
       if (S.phase === 'landing') {
         // The collision plays its dedicated seven-frame scene above the world.
       } else {

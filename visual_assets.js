@@ -68,6 +68,13 @@
   for(let i=0;i<8;i++)files['decor-'+i]=current+'decor-'+i+'.png';
   for(let i=0;i<3;i++){files['floor-texture-'+i]=current+'floor-texture-'+i+'.png';delete files['ground-strip-'+i];}
   for(const gender of ['boy','girl'])for(let i=0;i<7;i++)files['ending-anguirus-'+gender+'-'+i]=current+'ending-anguirus-'+gender+'-'+i+'.png';
+  const heisei='art_prototypes/revision8/';
+  for(const name of ['godzilla','gamera','anguirus'])opening['opening-'+name]=heisei+'opening-'+name+'.png';
+  for(const name of ['oilrig','gamera','anguirus','can']) {
+    files[name]=heisei+name+'-frame-0.png';
+    for(let i=0;i<7;i++)files[name+'Frame'+i]=heisei+name+'-frame-'+i+'.png';
+  }
+  for(const gender of ['boy','girl'])for(let i=0;i<7;i++)files['ending-anguirus-'+gender+'-'+i]=heisei+'ending-anguirus-'+gender+'-'+i+'.png';
   if (typeof Image !== 'undefined') {
     const byPath = new Map(), queue = [];
     Object.entries({ ...opening, ...files }).forEach(([name, path]) => {

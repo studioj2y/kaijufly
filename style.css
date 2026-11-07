@@ -679,3 +679,53 @@ html, body {
   margin-top: 6px;
   letter-spacing: 2px;
 }
+/* The photo clock is advanced by the paused game's presentation state. */
+dialog { margin:auto; color: #eadfc8; border: 1px solid #8f826b; padding: 24px; background: #20292b; box-shadow: 0 20px 80px #0009; font-family:inherit; }
+dialog::backdrop { background: rgba(10,18,22,.83); }
+dialog button, dialog select { touch-action: manipulation; }
+dialog button { font-family:inherit; font-size:14px; font-weight:600; line-height:1.4; padding:10px 16px; color:#263437; border:1px solid #af9771; border-radius:3px; background:#eadcc0; cursor:pointer; }
+dialog button:hover:not(:disabled) { background:#fff0cf; }
+dialog button:focus-visible { outline:3px solid #76d8ec; outline-offset:3px; }
+dialog button:disabled { cursor:default; opacity:.6; }
+dialog [hidden] { display:none !important; }
+#photoScene { width: min(620px,92vw); max-height: 94dvh; overflow:auto; text-align:center; --photo-progress:0; }
+.photo-viewfinder { display:flex; justify-content:space-between; align-items:center; gap:12px; margin:0 0 14px; font-size:14px; }
+.photo-rec { color:#cab592; font-size:10px; letter-spacing:2px; }
+.souvenir-print { margin:0 auto; width:min(440px,100%); padding:12px 12px 8px; background:#eee4ce; color:#253238; transform:rotate(calc((1 - var(--photo-progress))*-3deg)); }
+.photo-window { position:relative; overflow:hidden; aspect-ratio:1; background:#53646a; }
+.photo-window img { width:100%; height:100%; object-fit:cover; display:block; transform:scale(calc(1.12 - var(--photo-progress)*.12)) translateY(calc((1 - var(--photo-progress))*-9px)); }
+.photo-flash { position:absolute; inset:0; background:#fff; opacity:0; pointer-events:none; }
+#photoAction { position:absolute; inset:0; width:100%; height:100%; }
+#photoScene:not([data-shot=posing]) #photoAction { display:none; }
+#photoScene[data-shot=flash] .photo-flash { opacity:.94; }
+.souvenir-print h2 { font-size:21px; margin:10px 0 5px; letter-spacing:1px; }
+.souvenir-print p { font-size:14px; margin:0 0 6px; }
+#photoSaved { font-size:13px; margin:15px 0 10px; }
+#resumePhoto { min-height:42px; }
+#albumDialog { width:min(1040px,94vw); max-height:92dvh; padding:24px; overflow:auto; }
+.album-header { display:flex; justify-content:space-between; align-items:center; gap:12px; border-bottom:1px solid #a8997e; padding-bottom:16px; }
+.album-header h2 { margin:4px 0; font-size:26px; }
+.album-header small { color:#c5ad81; letter-spacing:3px; }
+.album-header button { flex-shrink:0; }
+.album-filters { display:flex; gap:20px; flex-wrap:wrap; }
+.album-filters select { margin-left:8px; padding:7px 12px; background:#f0e5ce; color:#222e31; font:inherit; border:0; border-radius:3px; }
+#albumSave { font-size:13px; color:#cfbf9f; }
+#albumGrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(185px,1fr)); gap:18px; padding:8px 0; }
+.album-tile { border:0; padding:9px 9px 14px; background:#e8ddc6; color:#243033; text-align:left; display:flex; flex-direction:column; gap:7px; box-shadow:0 3px 10px #0005; }
+.album-tile img,.album-lock { width:100%; aspect-ratio:1; object-fit:contain; background:radial-gradient(ellipse at center,#c5c4b7,#8d9e9e); }
+.album-lock { display:grid; place-items:center; color:#d7ccb5; background:repeating-linear-gradient(125deg,#344346 0 18px,#37474a 18px 19px); font-size:18px; letter-spacing:6px; }
+.album-tile.locked { opacity:.66; cursor:default; }
+.album-tile b { font-size:16px; }.album-tile small { font-size:12px; }
+.album-full { margin:20px auto; width:min(720px,100%); background:#e8ddc6; padding:16px; color:#243033; text-align:center; }
+.album-full img { width:100%; max-height:60dvh; object-fit:contain; background:radial-gradient(ellipse,#d0cbb9,#91a3a3); }
+.album-full h3 { margin:14px 0 5px; }.album-full p { margin:7px 0; }
+img[data-failed=true] { padding:20px; color:#f1e5ce; background:#435256; font-size:14px; }
+@media(max-width:600px) {
+  #photoScene,#albumDialog { padding:14px; }
+  .souvenir-print { width:min(350px,100%,calc(68dvh - 140px)); min-width:210px; padding:8px; }
+  .souvenir-print h2 { font-size:17px; }.souvenir-print p { font-size:12px; }
+  #albumGrid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+  .album-tile b { font-size:14px; }.album-tile small { font-size:11px; }
+  .album-header h2 { font-size:21px; }.album-header small { font-size:10px; }
+  .album-filters { gap:12px; font-size:14px; }
+}

@@ -529,14 +529,13 @@ function drawTokusatsuAirEntity(ctx, e, sx, sy, PPM, time) {
     }
 
     case 'can': {
-      // 剧组 M87 能量维他命果汁罐
-      ctx.fillStyle = '#22b8cf';
-      rr(ctx, -px * 0.28, -py * 0.42, px * 0.56, py * 0.84, 4);
-      ctx.fill();
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 10px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('M87', 0, 4);
+      // Readable Color Timer silhouette while the painted frames load.
+      ctx.fillStyle = '#adb8bb'; ctx.beginPath();
+      ctx.ellipse(0, 0, px * .42, py * .45, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#66e7ee'; ctx.shadowColor = '#8ffaff'; ctx.shadowBlur = 12 + Math.sin(time * 6) * 4;
+      ctx.beginPath(); ctx.ellipse(0, -py * .03, px * .33, py * .35, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.shadowBlur = 0; ctx.fillStyle = '#e1ffff'; ctx.beginPath();
+      ctx.ellipse(-px * .09, -py * .16, px * .13, py * .06, -.3, 0, Math.PI * 2); ctx.fill();
       break;
     }
 
