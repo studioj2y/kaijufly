@@ -35,12 +35,12 @@
   ];
 
   const STUNT_LABEL = {
-    cloud: '特斯拉静电充能',
+    cloud: '引力射线',
     rodan: '拉顿超音速破空',
     mothra: '摩斯拉神圣鳞粉',
     balloon: '哥斯拉肚腩弹跳',
     plane: '特搜战机喷射加速',
-    gillas: '基拉斯合体大旋转',
+    gillas: '吉拉斯相抱旋风',
     oilrig: '蓝色原子吐息爆发',
     chili: '骑士推进糖果',
     can: '特摄能量果汁',
@@ -55,12 +55,12 @@
   };
 
   const STUNT_MUG = {
-    cloud: '静电炸毛！爽快！',
+    cloud: '金色引力射线！充能完成！',
     rodan: '飞得比喷气机还快！',
-    mothra: '治愈鳞粉！体力充满！',
+    mothra: '治愈鳞粉！补给到啦！',
     balloon: '巨兽肚皮太有弹性啦！',
     plane: '战机尾流带我冲！',
-    gillas: '头晕目眩！赛文同款旋转！',
+    gillas: '两位抱紧啦！旋风开拍！',
     oilrig: '原子光线直冲云霄！',
     chili: '屁股喷出彩色火焰！',
     can: '喝一口满血复活！',
@@ -166,28 +166,12 @@
       case 'mothra': return [16, 8];
       case 'balloon': return [12, 13];
       case 'plane': return [14, 6];
-      case 'gillas': return [14, 32];
+      case 'gillas': return [16, 18];
       case 'oilrig': return [9, 16];
       case 'chili': return [4, 4];
       case 'can': return [4, 4];
       case 'birds': return [10, 5];
       default: return [7, 7];
-    }
-  }
-
-  function airHeight(t, r) {
-    switch (t) {
-      case 'cloud': return 52 + r() * 38;
-      case 'rodan': return 26 + r() * 48;
-      case 'mothra': return 30 + r() * 45;
-      case 'balloon': return 16 + r() * 38;
-      case 'plane': return 28 + r() * 48;
-      case 'gillas': return 15 + r() * 4;
-      case 'oilrig': return 7 + r() * 4;
-      case 'chili': return 12 + r() * 58;
-      case 'can': return 12 + r() * 58;
-      case 'birds': return 30 + r() * 45;
-      default: return 30;
     }
   }
 
@@ -243,14 +227,8 @@
     airN += Math.floor(extra) + (r() < extra % 1 ? 1 : 0);
     // 生成空中道具
     for (let i = 0; i < airN; i++) {
-      let t;
-      if (dist >= 1200 && r() < 0.18) {
-        const highTypes = ['rodan', 'mothra', 'gillas', 'plane', 'balloon', 'chili'];
-        t = highTypes[Math.floor(r() * highTypes.length)];
-      } else {
-        t = AIR_TYPES[Math.floor(r() * AIR_TYPES.length)];
-      }
-      S.air.push(makeEnt(t, start + 12 + r() * (CHUNK - 24), airHeight(t, r), r));
+      const encounter = window.kaijuAirDistribution.sample(r);
+      S.air.push(makeEnt(encounter.type, start + 12 + r() * (CHUNK - 24), encounter.y, r));
     }
 
     // 生成地面交互设施 (弹力蹦床、纸板大楼、原子喷口、剧组便当、滑轨车)
@@ -327,6 +305,7 @@
 
   // ---------------- 游戏流程管理 ----------------
   function showMenu() {
+    $('characterSelect').classList.add('hidden');
     $('workshop').classList.add('hidden');
     S.phase = 'menu'; S.holding = false; S.frozen = false;
     $('menu').classList.remove('hidden');
@@ -403,11 +382,11 @@
 
     switch (type) {
       case 'cloud':
-        // 特斯拉人工电离云：全身触电火花 + 瞬间充能 + 骨骼透视
+        // 暗云中的金色引力射线：瞬间充能与曝光轮廓。
         j.energy = Math.min(maxEnergy(), j.energy + 50);
         j.vy += 22; j.vx *= 0.9;
         S.stun = 0.35; S.skeleton = 1.15; S.flash = 0.65; S.shake = 12;
-        puff(e.x, e.y, 34, '#74c0fc', 20);
+        puff(e.x, e.y, 34, '#ffd43b', 20);
         window.kaijuAudio.play('spark');
         addStunt('cloud', 140);
         break;
@@ -912,6 +891,17 @@
   }
 
   let workshopReturn = 'menu';
+  function setCharacter(character) {
+    S.character = character === 'girl' ? 'girl' : 'boy';
+    if (window.kaijuArt) window.kaijuArt.setCharacter(S.character);
+    $('stage').dataset.hero = S.character;
+    try { localStorage.setItem('kaijufly_character', S.character); } catch (_) {}
+  }
+  function showCharacterSelect() {
+    S.phase = 'character'; S.holding = false;
+    $('menu').classList.add('hidden');
+    $('characterSelect').classList.remove('hidden');
+  }
   function renderWorkshop() {
     if (!progress) return;
     $('workshopPoints').textContent = progress.data.points;
@@ -934,6 +924,7 @@
   function bind() {
     window.addEventListener('resize', resize);
     window.addEventListener('keydown', (e) => {
+      if (S.phase === 'character') return;
       if (S.phase === 'workshop') {
         if (e.key === 'Escape') closeWorkshop();
         return;
@@ -969,6 +960,10 @@
     $('backMenu').addEventListener('click', (e) => { e.stopPropagation(); showMenu(); });
     $('paperMenu').addEventListener('click', (e) => { e.stopPropagation(); showMenu(); });
     $('openWorkshop').addEventListener('click', openWorkshop);
+    $('changeCharacter').addEventListener('click', showCharacterSelect);
+    document.querySelectorAll('[data-character]').forEach(button => button.addEventListener('click', () => {
+      setCharacter(button.dataset.character); showMenu();
+    }));
     $('resultWorkshop').addEventListener('click', openWorkshop);
     $('closeWorkshop').addEventListener('click', closeWorkshop);
     $('upgradeList').addEventListener('click', e => {
@@ -1352,7 +1347,7 @@
       if (sx > -200 && sx < W + 200 && sy > -300 && sy < H + 300) {
         ctx.globalAlpha = e.hit ? 0.3 : 1;
         const artName = e.type === 'mothra' ? 'moth' : e.type;
-        const airArt = window.kaijuArt && (['moth', 'rodan'].includes(artName) ? window.kaijuArt.frame(artName, S.t + e.ph) : window.kaijuArt.get(artName));
+        const airArt = window.kaijuArt && (['moth', 'rodan', 'gillas', 'cloud'].includes(artName) ? window.kaijuArt.frame(artName, S.t + e.ph) : window.kaijuArt.get(artName));
         if (airArt) {
           const wingRoom = ['moth', 'rodan'].includes(artName) ? 1.6 : 1;
           const scale = Math.min(e.w * PPM / airArt.width, e.h * PPM * wingRoom / airArt.height);
@@ -1360,8 +1355,8 @@
           ctx.save();
           ctx.translate(sx + Math.sin(S.t * 1.4 + e.ph) * 3, sy + Math.sin(S.t * 2 + e.ph) * 4);
           ctx.rotate(Math.sin(S.t * 1.7 + e.ph) * 0.025);
-          const beat = [0, 1, 0, -1][Math.floor((S.t + e.ph) * 4) % 4];
-          if (['cloud', 'oilrig', 'balloon', 'gillas'].includes(artName)) ctx.scale(1 + beat * 0.025, 1 - beat * 0.025);
+          const beat = Math.sin((S.t + e.ph) * Math.PI * 2);
+          if (['oilrig', 'balloon'].includes(artName)) ctx.scale(1 + beat * 0.025, 1 - beat * 0.025);
           ctx.drawImage(airArt, -dw / 2, -dh / 2, dw, dh);
           ctx.restore();
         } else {
@@ -1559,6 +1554,9 @@
   resize();
   bind();
   loadBest();
+  let savedCharacter = 'boy';
+  try { savedCharacter = localStorage.getItem('kaijufly_character') || 'boy'; } catch (_) {}
+  setCharacter(savedCharacter);
 
   const q = new URLSearchParams(location.search);
   if (q.get('test') === '1') {
@@ -1583,6 +1581,7 @@
     $('tip').textContent = '按住挥臂爬升，松开滑翔 · 完成飞行获得片场点数';
   } else {
     showMenu();
+    showCharacterSelect();
   }
 
   requestAnimationFrame(loop);

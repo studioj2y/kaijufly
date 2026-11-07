@@ -6,15 +6,12 @@
     stage2: 'art_prototypes/full_assets/stage2.webp',
     stage3: 'art_prototypes/full_assets/stage3.webp',
     stage4: 'art_prototypes/full_assets/stage4.webp',
-    pilot: 'art_prototypes/production_sample/pilot.webp',
-    pilotFlap: 'art_prototypes/full_assets/pilot-flap.webp',
-    pilotDive: 'art_prototypes/full_assets/pilot-dive.webp',
-    moth: 'art_prototypes/production_sample/moth.webp',
-    rodan: 'art_prototypes/full_assets/rodan.webp',
+    moth: 'art_prototypes/revision2/moth-frame-0.webp',
+    rodan: 'art_prototypes/revision2/rodan-frame-0.webp',
     balloon: 'art_prototypes/full_assets/balloon.webp',
-    plane: 'art_prototypes/full_assets/plane.webp',
-    cloud: 'art_prototypes/full_assets/cloud.webp',
-    gillas: 'art_prototypes/full_assets/gillas.webp',
+    plane: 'art_prototypes/revision2/plane-right.webp',
+    cloud: 'art_prototypes/revision2/cloud-frame-0.webp',
+    gillas: 'art_prototypes/revision2/gillas-frame-0.webp',
     oilrig: 'art_prototypes/full_assets/oilrig.webp',
     chili: 'art_prototypes/full_assets/chili.webp',
     can: 'art_prototypes/full_assets/can.webp',
@@ -37,8 +34,8 @@
     camera: 'art_prototypes/full_assets/camera.webp'
   };
   const images = {};
-  ['pilot', 'moth', 'rodan'].forEach(name => {
-    for (let frame = 0; frame < 4; frame++) files[name + 'Frame' + frame] = 'art_prototypes/full_assets/' + name + '-frame-' + frame + '.webp';
+  ['boy', 'girl', 'moth', 'rodan', 'gillas', 'cloud'].forEach(name => {
+    for (let frame = 0; frame < 7; frame++) files[name + 'Frame' + frame] = 'art_prototypes/revision2/' + name + '-frame-' + frame + '.webp';
   });
   if (typeof Image !== 'undefined') {
     Object.keys(files).forEach(name => {
@@ -48,10 +45,15 @@
     });
   }
   window.kaijuArt = {
+    character: 'boy',
+    setCharacter(character) { this.character = character === 'girl' ? 'girl' : 'boy'; },
     frame(name, time) {
-      return this.get(name + 'Frame' + (Math.floor(time * 4) % 4)) || this.get(name === 'pilot' ? 'pilotFlap' : name);
+      if (name === 'pilot') name = this.character;
+      return this.get(name + 'Frame' + (Math.floor(Math.max(0, time) * 7) % 7)) || this.get(name + 'Frame0');
     },
     get(name) {
+      if (['pilot', 'pilotFlap', 'pilotDive'].includes(name)) name = this.character + 'Frame3';
+      else if (name.startsWith('pilotFrame')) name = this.character + name.slice(5);
       const image = images[name];
       return image && image.complete && image.naturalWidth > 0 ? image : null;
     }

@@ -60,9 +60,9 @@
           ③ 出炮后 <b>按住不放</b>：小朋友像小鸟一样拼命挥舞手臂爬升微调，<b>消耗体力</b>；松开进入轻盈滑翔。飞得过陡会失速！<br>
           <b>R</b> 重新发射　<b>Esc</b> 返回片场大门
         </div>
-        <div class="btns"><button id="openWorkshop">片场工坊 · 解锁与配置</button></div>
+        <div class="btns"><button id="openWorkshop">片场工坊 · 解锁与配置</button><button id="changeCharacter">更换主角</button></div>
         <div class="legend">
-          拉顿超音速顺风车 · 摩斯拉鳞粉治愈充能 · 哥斯拉软胶大肚皮弹跳 · 防卫队战机掠过推力 · 基拉斯兄弟旋转飓风 · 特斯拉人工放电 · 8种爆笑见学收场纪念照
+          低空寻找摩斯拉 · 中空遇见飞机 · 高空寻找拉顿 · 云端引力射线<br>吉拉斯相抱旋风 · 8种见学收场纪念照
         </div>
       </div>
     </div>
@@ -111,6 +111,19 @@
         </div>
       </div>
     </div>
+    <div id="characterSelect" class="panel hidden">
+      <div class="card character-card">
+        <div class="clapper-stripe"></div>
+        <div class="director-badge">STUDIO VISIT · 今天由谁来见学？</div>
+        <h2>选择你的主角</h2>
+        <p>带着好奇心，出发去片场！两位主角的能力相同。</p>
+        <div class="character-options">
+          <button class="character-choice" data-character="boy"><img src="art_prototypes/revision2/boy-frame-0.webp" alt="开心挥臂的红帽男孩"><b>男生</b><span>红色棒球帽 · 活力见学者</span></button>
+          <button class="character-choice" data-character="girl"><img src="art_prototypes/revision2/girl-frame-0.webp" alt="开心挥臂的风镜女孩"><b>女生</b><span>飞行风镜 · 好奇探索家</span></button>
+        </div>
+        <small>之后也可以在主菜单更换。</small>
+      </div>
+    </div>
     <div id="workshop" class="panel hidden">
       <div class="card workshop-card">
         <div class="clapper-stripe"></div>
@@ -133,6 +146,7 @@
 <script src="entities.js"></script>
 <script src="visual_assets.js"></script>
 <script src="progression.js"></script>
+<script src="air_distribution.js"></script>
 <script src="game.js"></script>
 </body>
 </html>

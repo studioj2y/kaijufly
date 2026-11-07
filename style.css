@@ -604,14 +604,25 @@ html, body {
 #menu::before {
   left: max(14px, calc(50% - 600px));
   transform: translateY(-46%) rotate(-17deg);
-  background-image: url('art_prototypes/full_assets/pilot-flap.webp');
+  background-image: url('art_prototypes/revision2/boy-frame-0.webp');
 }
 #menu::after {
   right: max(14px, calc(50% - 600px));
   transform: translateY(-40%) rotate(12deg);
-  background-image: url('art_prototypes/production_sample/moth.webp');
+  background-image: url('art_prototypes/revision2/moth-frame-0.webp');
 }
 #menu .card { z-index: 1; }
+#stage[data-hero="girl"] #menu::before { background-image: url('art_prototypes/revision2/girl-frame-0.webp'); }
+#characterSelect { z-index: 35; }
+.character-card p { font-size: 13px; margin: 14px 0; line-height: 1.6; }
+.character-options { display: flex; gap: 18px; margin: 20px 0; }
+.character-choice { flex: 1; min-width: 0; padding: 14px 8px; background: #d8c8a8; color: #26343c; border: 2px solid #66757b; border-radius: 4px; cursor: pointer; }
+.character-choice:hover, .character-choice:focus-visible { background: #eed5a4; border-color: #a74732; outline: 2px solid #a74732; outline-offset: 3px; }
+.character-choice img { display: block; width: 100%; height: 170px; object-fit: contain; }
+.character-choice b, .character-choice span { display: block; margin-top: 8px; }
+.character-choice b { font-size: 20px; }
+.character-choice span, .character-card small { font-size: 11px; }
+@media (max-width: 600px) { .character-options { gap: 10px; } .character-choice img { height: 130px; } }
 .card { max-height: calc(100dvh - 32px); overflow-y: auto; }
 #workshop { z-index: 30; }
 .workshop-card { max-width: 760px; }

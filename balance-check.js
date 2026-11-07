@@ -14,7 +14,7 @@ function createGame(seed, rank = 0) {
 
   const nodes = new Map();
   const makeNode = () => ({
-    style: {}, textContent: '', innerHTML: '',
+    style: {}, dataset: {}, textContent: '', innerHTML: '',
     classList: { add() {}, remove() {}, toggle() {} },
     addEventListener() {},
     getContext() { return { setTransform() {} }; }
@@ -40,6 +40,7 @@ function createGame(seed, rank = 0) {
     localStorage: { getItem() { return null; }, setItem() {} }
   };
   vm.runInNewContext(fs.readFileSync(__dirname + '/progression.js', 'utf8'), context);
+  vm.runInNewContext(fs.readFileSync(__dirname + '/air_distribution.js', 'utf8'), context);
   for (const item of window.kaijuProgress.catalog) {
     window.kaijuProgress.data.owned[item.id] = rank;
     window.kaijuProgress.data.equipped[item.id] = rank;

@@ -480,33 +480,27 @@ function drawTokusatsuAirEntity(ctx, e, sx, sy, PPM, time) {
     }
 
     // ------------------------------------------------------------------------
-    // ⑥ 特斯拉人工电离云 (Cloud)：放电充能装置，静电炸毛！
+    // ⑥ 引力射线：暗云内部的金色电光。
     // ------------------------------------------------------------------------
     case 'cloud': {
       // 烟雾机喷出的灰白特摄云团
-      ctx.fillStyle = '#868e96';
+      ctx.fillStyle = '#303436';
       ctx.beginPath();
       ctx.arc(-px * 0.2, 0, px * 0.24, 0, Math.PI * 2);
       ctx.arc(0, -py * 0.18, px * 0.3, 0, Math.PI * 2);
       ctx.arc(px * 0.22, 0, px * 0.24, 0, Math.PI * 2);
       ctx.fill();
 
-      // 隐藏在云中的特斯拉铜球发生器
-      ctx.fillStyle = '#d9480f';
-      ctx.beginPath();
-      ctx.arc(0, 0, 7, 0, Math.PI * 2);
-      ctx.fill();
-
-      // 五毛钱亮蓝特摄放电电弧
-      ctx.strokeStyle = '#4dabf7';
-      ctx.lineWidth = 3.5;
+      // 云层内部隐约闪现金色分叉，素材缺失时仍保持同一含义。
+      ctx.strokeStyle = '#d3b56c';
+      ctx.lineWidth = 2;
       const f = Math.sin(time * 14 + e.ph) > 0.35 ? 1 : 0;
       if (f) {
         ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(-px * 0.15, py * 0.25);
-        ctx.lineTo(px * 0.05, py * 0.32);
-        ctx.lineTo(-px * 0.1, py * 0.55);
+        ctx.moveTo(px * 0.05, -py * 0.35);
+        ctx.lineTo(-px * 0.08, -py * 0.1);
+        ctx.lineTo(px * 0.05, 0);
+        ctx.lineTo(-px * 0.08, py * 0.17);
         ctx.stroke();
       }
       break;
