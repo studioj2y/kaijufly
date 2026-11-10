@@ -31,12 +31,13 @@
       ctx.drawImage(patch(image,variant),index*width-offset,bottom-h,width*1.18,h);
     }
   }
+  const parallaxOffset = (state, layer, ppm) => state.camX * ppm * [.025, .075, .16][layer] + (state.phase === 'flying' ? state.t : 0) * [2, 5, 9][layer];
   function background(ctx, state, W, H, ppm) {
     const art = window.kaijuArt, stage = stages[(state.stage || 1) - 1];
     const layers = [0, 1, 2].map(i => art && art.get('parallax-' + stage + '-' + i));
     if (!layers.every(Boolean)) return false;
     const far = Math.min(H * .12, state.camY * ppm * .025);
-    const speeds = [.025, .075, .16], drift = [2, 5, 9];
+
     ctx.save();
     ctx.fillStyle = ['#8ea5ad', '#885f4b', '#101c2b', '#191d23'][(state.stage || 1) - 1];
     ctx.fillRect(0, 0, W, H);
@@ -44,7 +45,7 @@
       const height = i === 0 ? H : H * (i === 1 ? .72 : .75);
       const width = Math.max(W * .9, height * image.width / image.height * .7);
       const y = i === 0 ? 0 : H * (i === 1 ? .82 : 1) - height + far * (i === 1 ? .45 : 1);
-      sceneryBand(ctx,image,state.camX*ppm*speeds[i]+state.t*drift[i],y+height,width,height,W,(state.seed||1)+i*41,i===0);
+      sceneryBand(ctx,image,parallaxOffset(state,i,ppm),y+height,width,height,W,(state.seed||1)+i*41,i===0);
     });
     ctx.restore();
     return true;
@@ -182,5 +183,5 @@
     }
     ctx.restore();
   }
-  window.kaijuScene = { background, floor, tileIndex, endingIndex, endingReady, drawEnding, endingOverlay, opening, openingReady, openingTiming, monsters };
+  window.kaijuScene = { background, floor, tileIndex, endingIndex, endingReady, drawEnding, endingOverlay, opening, openingReady, openingTiming, monsters, parallaxOffset };
 })();

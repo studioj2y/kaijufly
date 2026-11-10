@@ -167,7 +167,7 @@
       case 'gamera': return [19, 9];
       case 'plane': return [14, 6];
       case 'gillas': return [16, 18];
-      case 'oilrig': return [25, 44];
+      case 'oilrig': return [30, 52.8]; // Standing Godzilla: +20% width and height.
       case 'chili': return [4, 4];
       case 'can': return [4, 4];
       case 'birds': return [10, 5];
@@ -202,8 +202,9 @@
 
   function makeGround(t, x, isFacility = false) {
     const ratio = window.kaijuSceneAssets && window.kaijuSceneAssets.groundRatios[t];
-    const h = ratio ? Math.min(window.kaijuLayout.groundHeights[t], groundSize(t) / ratio) : window.kaijuLayout.groundHeights[t];
-    return { type: t, x: x, w: ratio ? h * ratio : groundSize(t), h, hit: false, isFacility: isFacility,
+    const sizeFactor = isFacility ? 1.5 : 1;
+    const h = (ratio ? Math.min(window.kaijuLayout.groundHeights[t], groundSize(t) / ratio) : window.kaijuLayout.groundHeights[t]) * sizeFactor;
+    return { type: t, x: x, w: (ratio ? h / sizeFactor * ratio : groundSize(t)) * sizeFactor, h, hit: false, isFacility: isFacility,
       walkSpeed: t === 'anguirus' ? 2 : 0, walkT: 0, walking: false };
   }
 
@@ -1714,6 +1715,6 @@
     S: S, step: step, press: press, release: release,
     startGame: startGame, hit: hit, doLanding: doLanding,
     showResult: showResult, render: render, runTests: runTests, ensureWorld: ensureWorld,
-    startOpening, showMenu, setCharacter, checkLandingProps
+    startOpening, showMenu, setCharacter, checkLandingProps, entitySize, makeGround, GROUND_FACILITY_TYPES
   };
 })();
